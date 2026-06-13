@@ -1,0 +1,399 @@
+<!-- تحديد نوع المستند كملف HTML5 -->
+<!DOCTYPE html>
+<!-- تحديد لغة المستند كعربية واتجاه النص من اليمين لليسار -->
+<html lang="ar" dir="rtl">
+<!-- بداية قسم الرأس (head) -->
+<head>
+    <!-- ترميز الحروف العربية -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- عنوان الصفحة -->
+    <title>مزرعة العلاليش 🐑 - الإدارة المتكاملة</title>
+    <!-- مكتبة TailwindCSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- مكتبة Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- خط تاجوال العربي -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <!-- أيقونات FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- إعدادات CSS مخصصة لتأثيرات الزجاج والرسومات -->
+    <style>
+        body { font-family: 'Tajawal', sans-serif; background-color: #f0fdf4; }
+        .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3); }
+        .hidden-tab { display: none !important; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #22c55e; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #16a34a; }
+        
+        /* تأثيرات النوافذ المنبثقة (Custom Modals) */
+        .modal-overlay { background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); }
+        .modal-scale-up { animation: scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes scaleUp {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        /* تأثيرات التنبيه السريع (Toast) */
+        .toast-slide-in { animation: slideIn 0.4s ease-out forwards; }
+        .toast-fade-out { animation: fadeOut 0.4s ease-in forwards; }
+        @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(-100%); opacity: 0; } }
+    </style>
+</head>
+<body class="text-gray-800 pb-12 bg-gradient-to-br from-green-50 to-emerald-100 min-h-screen relative overflow-x-hidden">
+
+    <!-- حاوية التنبيهات السريعة (Toasts Container) -->
+    <div id="toast-container" class="fixed bottom-4 left-4 z-50 flex flex-col gap-2"></div>
+
+    <!-- نافذة التأكيد المنبثقة (Confirm Modal) مخفية افتراضياً -->
+    <div id="confirm-modal" class="fixed inset-0 z-50 flex items-center justify-center modal-overlay hidden">
+        <div class="glass w-11/12 max-w-sm rounded-3xl p-6 text-center shadow-2xl modal-scale-up">
+            <div id="confirm-icon" class="text-6xl mb-4 text-amber-500"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <h2 id="confirm-title" class="text-2xl font-bold mb-2 text-gray-800">هل أنت متأكد؟</h2>
+            <p id="confirm-msg" class="text-gray-500 mb-6 text-sm">لا يمكن التراجع عن هذا الإجراء!</p>
+            <div class="flex justify-center gap-4">
+                <button id="btn-confirm-cancel" class="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold rounded-xl transition-colors">إلغاء</button>
+                <button id="btn-confirm-ok" class="px-6 py-2 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl shadow-lg transition-colors">نعم، متأكد</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- الشريط الجانبي والتنقل العلوي (شريط البار) -->
+    <nav class="bg-gradient-to-r from-green-800 to-emerald-700 text-white shadow-lg sticky top-0 z-40">
+        <div class="container mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-tractor text-3xl text-emerald-300"></i>
+                <div>
+                    <h1 class="text-2xl font-extrabold tracking-tight">مشروع العلاليش 🐑</h1>
+                    <p class="text-sm text-green-200 opacity-90">النظام المتكامل لإدارة المزرعة</p>
+                </div>
+            </div>
+            
+            <!-- أزرار التنقل (Tabs) -->
+            <div class="flex flex-wrap justify-center gap-1 bg-green-900/50 p-1 rounded-xl backdrop-blur-sm overflow-x-auto">
+                <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn active px-4 py-2 rounded-lg font-bold text-sm transition-all duration-300 bg-white text-green-800 shadow-md">
+                    <i class="fa-solid fa-house ml-1"></i> الرئيسية
+                </button>
+                <button onclick="switchTab('sales')" id="btn-sales" class="tab-btn px-4 py-2 rounded-lg font-bold text-sm text-green-100 hover:text-white transition-all duration-300">
+                    <i class="fa-solid fa-sack-dollar ml-1"></i> المبيعات
+                </button>
+                <button onclick="switchTab('expenses')" id="btn-expenses" class="tab-btn px-4 py-2 rounded-lg font-bold text-sm text-green-100 hover:text-white transition-all duration-300">
+                    <i class="fa-solid fa-money-bill-wave ml-1"></i> المصروفات
+                </button>
+                <button onclick="switchTab('batches')" id="btn-batches" class="tab-btn px-4 py-2 rounded-lg font-bold text-sm text-green-100 hover:text-white transition-all duration-300">
+                    <i class="fa-solid fa-sheep ml-1"></i> الدفعات
+                </button>
+                <button onclick="switchTab('medications')" id="btn-medications" class="tab-btn px-4 py-2 rounded-lg font-bold text-sm text-green-100 hover:text-white transition-all duration-300">
+                    <i class="fa-solid fa-syringe ml-1"></i> الأدوية
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- الحاوية الرئيسية للمحتوى -->
+    <main class="container mx-auto px-4 mt-8 max-w-6xl">
+
+        <!-- ========================================== -->
+        <!-- 0. قسم لوحة القيادة الرئيسية (Dashboard) -->
+        <!-- ========================================== -->
+        <div id="tab-dashboard" class="tab-content animate-fade-in">
+            <!-- رسالة الترحيب والتنبيهات المدمجة -->
+            <div class="flex items-center justify-between mb-8 flex-wrap gap-4">
+                <h2 class="text-3xl font-extrabold text-green-800"><i class="fa-solid fa-chart-line ml-2"></i> نظرة عامة على المزرعة</h2>
+                <button onclick="resetSystem()" class="px-5 py-2 bg-red-100 text-red-700 hover:bg-red-600 hover:text-white font-bold rounded-xl transition-colors flex items-center gap-2 border border-red-200">
+                    <i class="fa-solid fa-power-off"></i> تصفير النظام (حذف الكل)
+                </button>
+            </div>
+
+            <!-- قسم التنبيهات للأدوية والتطعيمات (ينتقل هنا ليكون في واجهة التطبيق) -->
+            <div id="medication-reminders" class="mb-8 hidden">
+                <!-- سيتم ملؤه من الجافاسكربت -->
+            </div>
+
+            <!-- الكروت الإحصائية الشاملة العلوية -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <!-- إجمالي الخرفان الموجودة -->
+                <div class="glass p-6 rounded-3xl shadow-md border-r-4 border-indigo-500 relative overflow-hidden group">
+                    <i class="fa-solid fa-sheep absolute top-2 left-2 text-6xl text-indigo-100 opacity-50 group-hover:scale-110 transition-transform"></i>
+                    <h3 class="text-gray-500 font-bold mb-1 text-sm">الرصيد الحي (الأغنام الحالية)</h3>
+                    <p class="text-3xl font-black text-gray-800"><span id="dash-total-sheep">0</span> <span class="text-lg text-gray-500 font-normal">رأس</span></p>
+                </div>
+                <!-- متوسط التكلفة (السعر والمصروفات مقسوم على إجمالي الدفعات) -->
+                <div class="glass p-6 rounded-3xl shadow-md border-r-4 border-purple-500 relative overflow-hidden group">
+                    <i class="fa-solid fa-calculator absolute top-2 left-2 text-6xl text-purple-100 opacity-50 group-hover:scale-110 transition-transform"></i>
+                    <h3 class="text-gray-500 font-bold mb-1 text-sm">متوسط التكلفة الكلية للرأس</h3>
+                    <p class="text-3xl font-black text-gray-800"><span id="dash-avg-cost">0</span> <span class="text-lg text-gray-500 font-normal">د.ل</span></p>
+                </div>
+                <!-- إجمالي المصروفات -->
+                <div class="glass p-6 rounded-3xl shadow-md border-r-4 border-orange-500 relative overflow-hidden group">
+                    <i class="fa-solid fa-money-bill-trend-up absolute top-2 left-2 text-6xl text-orange-100 opacity-50 group-hover:scale-110 transition-transform"></i>
+                    <h3 class="text-gray-500 font-bold mb-1 text-sm">إجمالي المصروفات التشغيلية</h3>
+                    <p class="text-3xl font-black text-gray-800"><span id="dash-total-exp">0</span> <span class="text-lg text-gray-500 font-normal">د.ل</span></p>
+                </div>
+                <!-- صافي الأرباح المحققة من المبيعات -->
+                <div class="glass p-6 rounded-3xl shadow-md border-r-4 border-emerald-500 relative overflow-hidden group">
+                    <i class="fa-solid fa-sack-dollar absolute top-2 left-2 text-6xl text-emerald-100 opacity-50 group-hover:scale-110 transition-transform"></i>
+                    <h3 class="text-gray-500 font-bold mb-1 text-sm">صافي الأرباح (من المبيعات)</h3>
+                    <p class="text-3xl font-black text-emerald-700"><span id="dash-total-profit">0</span> <span class="text-lg text-emerald-600 font-normal">د.ل</span></p>
+                </div>
+            </div>
+
+            <!-- الرسوم البيانية -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- الدائري -->
+                <div class="glass p-6 rounded-3xl shadow-md">
+                    <h3 class="text-lg font-bold text-gray-700 mb-4 text-center border-b pb-2">توزيع المصروفات حسب التصنيف</h3>
+                    <div class="relative h-64 w-full flex justify-center"><canvas id="categoryChart"></canvas></div>
+                </div>
+                <!-- الخطي -->
+                <div class="glass p-6 rounded-3xl shadow-md">
+                    <h3 class="text-lg font-bold text-gray-700 mb-4 text-center border-b pb-2">حركة المصروفات الشهرية</h3>
+                    <div class="relative h-64 w-full"><canvas id="monthlyChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 1. قسم المبيعات والأرباح (Sales Section) -->
+        <!-- ========================================== -->
+        <div id="tab-sales" class="tab-content hidden-tab animate-fade-in">
+            <section class="glass p-8 rounded-3xl shadow-md mb-8 border-t-4 border-emerald-500">
+                <h2 class="text-2xl font-bold mb-6 text-emerald-800 flex items-center gap-2 border-b pb-4"><i class="fa-solid fa-handshake"></i> تسجيل عملية بيع جديدة</h2>
+                <form id="sale-form" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">العدد المباع (رأس)</label>
+                            <input type="number" id="sale-count" required min="1" placeholder="مثال: 5" class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-left" dir="ltr">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">السعر الإجمالي للبيعة (د.ل)</label>
+                            <input type="number" id="sale-price" required min="1" placeholder="0.00" class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-left" dir="ltr">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">اسم المشتري (اختياري)</label>
+                            <input type="text" id="sale-buyer" placeholder="أدخل اسم المشتري..." class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">تاريخ البيع</label>
+                            <input type="date" id="sale-date" required class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">ملاحظات (طريقة الدفع، إلخ)</label>
+                        <input type="text" id="sale-notes" placeholder="..." class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    <div class="pt-2">
+                        <button type="submit" class="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white font-bold rounded-xl shadow-lg transition duration-200 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-check"></i> حفظ المبيعات
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="glass p-8 rounded-3xl shadow-md">
+                <h2 class="text-xl font-bold mb-6 text-gray-800 flex items-center gap-2"><i class="fa-solid fa-clipboard-list text-emerald-600"></i> سجل المبيعات والأرباح</h2>
+                <div class="overflow-x-auto rounded-xl border border-gray-100">
+                    <table class="w-full text-right border-collapse bg-white">
+                        <thead>
+                            <tr class="bg-gray-50 border-b border-gray-200 text-gray-600 text-sm">
+                                <th class="p-4 font-bold">التاريخ</th>
+                                <th class="p-4 font-bold">المشتري</th>
+                                <th class="p-4 font-bold">العدد</th>
+                                <th class="p-4 font-bold">سعر البيع</th>
+                                <th class="p-4 font-bold">متوسط سعر الرأس</th>
+                                <th class="p-4 font-bold">الربح الصافي</th>
+                                <th class="p-4 font-bold text-center">إجراء</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sales-list" class="divide-y divide-gray-100"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 2. قسم المصروفات (Expenses Section) -->
+        <!-- ========================================== -->
+        <div id="tab-expenses" class="tab-content hidden-tab animate-fade-in">
+            <section class="glass p-8 rounded-3xl shadow-md mb-8">
+                <h2 class="text-2xl font-bold mb-6 text-green-800 flex items-center gap-2 border-b pb-4"><i class="fa-solid fa-plus-circle"></i> تسجيل مصروف جديد</h2>
+                <form id="expense-form" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="col-span-1 lg:col-span-2">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">البيان</label>
+                            <input type="text" id="exp-title" required placeholder="..." class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">المبلغ (د.ل)</label>
+                            <input type="number" id="exp-amount" required min="1" placeholder="0" class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500 text-left" dir="ltr">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">التصنيف</label>
+                            <select id="exp-category" required class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer">
+                                <option value="أعلاف وتغذية">أعلاف وتغذية 🌾</option>
+                                <option value="تأسيس ومعدات">تأسيس ومعدات 🛠️</option>
+                                <option value="بيطرة وصحة">بيطرة وصحة 💉</option>
+                                <option value="تشغيل ونقل">تشغيل ونقل 🚛</option>
+                                <option value="أخرى">أخرى 📎</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">تاريخ المصروف</label>
+                            <input type="date" id="exp-date" required class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500">
+                        </div>
+                        <div class="col-span-1 md:col-span-2">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">ملاحظات</label>
+                            <input type="text" id="exp-notes" placeholder="..." class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500">
+                        </div>
+                    </div>
+                    <div class="pt-2">
+                        <button type="submit" class="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 text-white font-bold rounded-xl shadow-lg transition duration-200 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-save"></i> حفظ المصروف
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="glass p-8 rounded-3xl shadow-md">
+                <h2 class="text-xl font-bold mb-6 text-gray-800 flex items-center gap-2"><i class="fa-solid fa-list-ul text-emerald-600"></i> سجل المصروفات التفصيلي</h2>
+                <div class="overflow-x-auto rounded-xl border border-gray-100">
+                    <table class="w-full text-right border-collapse bg-white">
+                        <thead>
+                            <tr class="bg-gray-50 border-b border-gray-200 text-gray-600 text-sm">
+                                <th class="p-4 font-bold">التاريخ</th>
+                                <th class="p-4 font-bold">البيان</th>
+                                <th class="p-4 font-bold">التصنيف</th>
+                                <th class="p-4 font-bold">المبلغ</th>
+                                <th class="p-4 font-bold text-center">إجراء</th>
+                            </tr>
+                        </thead>
+                        <tbody id="expenses-list" class="divide-y divide-gray-100"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 3. قسم دفعات الأغنام (Batches Section) -->
+        <!-- ========================================== -->
+        <div id="tab-batches" class="tab-content hidden-tab animate-fade-in">
+            <section class="glass p-8 rounded-3xl shadow-md mb-8 border-t-4 border-indigo-500">
+                <h2 class="text-2xl font-bold mb-6 text-indigo-800 flex items-center gap-2 border-b pb-4"><i class="fa-solid fa-cart-plus"></i> إضافة دفعة أغنام جديدة (مشتريات)</h2>
+                <form id="batch-form" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">العدد المشترى (رأس)</label>
+                            <input type="number" id="bat-count" required min="1" placeholder="مثال: 50" class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-left" dir="ltr">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">سعر الشراء الإجمالي (د.ل)</label>
+                            <input type="number" id="bat-price" required min="1" placeholder="0.00" class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-left" dir="ltr">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">اسم البائع</label>
+                            <input type="text" id="bat-seller" placeholder="..." class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">تاريخ الشراء</label>
+                            <input type="date" id="bat-date" required class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                    </div>
+                    <div class="pt-2">
+                        <button type="submit" class="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-indigo-700 text-white font-bold rounded-xl shadow-lg transition duration-200 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-plus"></i> إضافة الدفعة
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="glass p-8 rounded-3xl shadow-md">
+                <h2 class="text-xl font-bold mb-6 text-gray-800 flex items-center gap-2"><i class="fa-solid fa-boxes-stacked text-indigo-600"></i> سجل دفعات الأغنام المشتراة</h2>
+                <div class="overflow-x-auto rounded-xl border border-gray-100">
+                    <table class="w-full text-right border-collapse bg-white">
+                        <thead>
+                            <tr class="bg-gray-50 border-b border-gray-200 text-gray-600 text-sm">
+                                <th class="p-4 font-bold">التاريخ</th>
+                                <th class="p-4 font-bold">عدد الأغنام</th>
+                                <th class="p-4 font-bold">البائع</th>
+                                <th class="p-4 font-bold">سعر الشراء</th>
+                                <th class="p-4 font-bold">سعر الرأس (شراء)</th>
+                                <th class="p-4 font-bold text-center">إجراء</th>
+                            </tr>
+                        </thead>
+                        <tbody id="batches-list" class="divide-y divide-gray-100"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 4. قسم الأدوية والتطعيمات (Medications Section) -->
+        <!-- ========================================== -->
+        <div id="tab-medications" class="tab-content hidden-tab animate-fade-in">
+            <section class="glass p-8 rounded-3xl shadow-md mb-8 border-t-4 border-rose-500">
+                <h2 class="text-2xl font-bold mb-6 text-rose-800 flex items-center gap-2 border-b pb-4"><i class="fa-solid fa-notes-medical"></i> جدولة تطعيم أو دواء جديد</h2>
+                <form id="med-form" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="col-span-1 lg:col-span-2">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">اسم الدواء</label>
+                            <input type="text" id="med-name" required placeholder="مثال: إيفوماك..." class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">النوع</label>
+                            <select id="med-type" required class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 cursor-pointer">
+                                <option value="تطعيم (Vaccine)">تطعيم 💉</option>
+                                <option value="مضاد حيوي (Antibiotic)">مضاد حيوي 💊</option>
+                                <option value="فيتامينات (Vitamins)">فيتامينات 🧪</option>
+                                <option value="أخرى">أخرى 📌</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">تاريخ الاستحقاق</label>
+                            <input type="date" id="med-date" required class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 gap-6">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">طريقة الإعطاء وملاحظات</label>
+                            <input type="text" id="med-notes" placeholder="..." class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500">
+                        </div>
+                    </div>
+                    <div class="pt-2">
+                        <button type="submit" class="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-rose-600 to-pink-500 hover:from-rose-700 text-white font-bold rounded-xl shadow-lg transition duration-200 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-calendar-check"></i> حفظ الموعد
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="glass p-8 rounded-3xl shadow-md">
+                <h2 class="text-xl font-bold mb-6 text-gray-800 flex items-center gap-2"><i class="fa-solid fa-list-check text-rose-600"></i> جدول الأدوية (الأقرب فالأقرب)</h2>
+                <div class="overflow-x-auto rounded-xl border border-gray-100">
+                    <table class="w-full text-right border-collapse bg-white">
+                        <thead>
+                            <tr class="bg-gray-50 border-b border-gray-200 text-gray-600 text-sm">
+                                <th class="p-4 font-bold">التاريخ المستحق</th>
+                                <th class="p-4 font-bold">الحالة</th>
+                                <th class="p-4 font-bold">اسم الدواء</th>
+                                <th class="p-4 font-bold">النوع</th>
+                                <th class="p-4 font-bold text-center">الإجراء</th>
+                            </tr>
+                        </thead>
+                        <tbody id="medications-list" class="divide-y divide-gray-100"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+    </main>
+
+    <footer class="mt-12 text-center text-gray-400 text-sm pb-4">
+        <p>تم التطوير بكل ❤️ لإدارة مشروع مزرعة الأغنام باحترافية.</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
