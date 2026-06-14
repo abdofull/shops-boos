@@ -43,7 +43,7 @@
             min-height: 100vh;
             color: var(--text-primary);
             overflow-x: hidden;
-            padding-bottom: 80px;
+            padding-bottom: 90px;
         }
 
         /* ===== Scrollbar ===== */
@@ -122,7 +122,7 @@
         .bottom-nav {
             position: fixed;
             bottom: 0; left: 0; right: 0;
-            background: rgba(255,255,255,0.97);
+            background: rgba(255,255,255,0.98);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border-top: 1px solid rgba(229,231,235,0.8);
@@ -130,7 +130,7 @@
             z-index: 50;
             padding-bottom: env(safe-area-inset-bottom, 0px);
             box-shadow: 0 -4px 24px rgba(0,0,0,0.1);
-            height: 65px;
+            height: 75px;
         }
 
         .bottom-nav-item {
@@ -145,17 +145,31 @@
             font-size: 10px;
             font-family: 'Tajawal', sans-serif;
             font-weight: 500;
-            gap: 3px;
+            gap: 4px;
             border: none;
             background: none;
             padding: 8px 4px;
-            min-height: 44px;
+            min-height: 60px;
             position: relative;
         }
 
         .bottom-nav-item i {
-            font-size: 19px;
-            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            font-size: 24px;
+            display: block;
+            width: 28px;
+            height: 28px;
+            line-height: 28px;
+            text-align: center;
+            color: #9ca3af;
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .bottom-nav-item span {
+            font-size: 11px;
+            display: block;
+            min-height: 14px;
+            color: #9ca3af;
+            transition: color 0.25s ease;
         }
 
         .bottom-nav-item.active {
@@ -163,7 +177,12 @@
         }
 
         .bottom-nav-item.active i {
-            transform: translateY(-2px) scale(1.1);
+            color: var(--green-mid);
+            transform: translateY(-2px) scale(1.15);
+        }
+
+        .bottom-nav-item.active span {
+            color: var(--green-mid);
         }
 
         .bottom-nav-item.active::before {
