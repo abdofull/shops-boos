@@ -13,8 +13,46 @@ const { getFirestore } = require("firebase-admin/firestore");
 // استدعاء مكتبة المسارات (path) للتعامل مع مسارات الملفات بشكل صحيح
 const path = require('path');
 
-// استدعاء ملف المفاتيح الخاص بـ فايربيس للتوثيق والاتصال
-const serviceAccount = require("./serviceAccountKey.json");
+// ==========================================
+// تهيئة Firebase من متغيرات البيئة (آمن للنشر على Render وغيره)
+// بدلاً من ملف serviceAccountKey.json الذي لا يُرفع للسيرفرات
+// ==========================================
+
+// دالة لتنظيف المفتاح الخاص
+function cleanPrivateKey(key) {
+    if (!key) return undefined;
+    
+    return key
+        .replace(/"/g, '') // إزالة علامات الاستشهام
+        .replace(/\\n/g, '\n') // استبدال \\n بـ \n
+        .replace(/\n\n/g, '\n') // إزالة الأسطر الفارغة الإضافية
+        .trim();
+}
+
+// التحقق من وجود ملف JSON محلي أولاً (للتطوير)
+let serviceAccount;
+
+try {
+    // محاولة قراءة ملف JSON الصحيح
+    serviceAccount = require('./serviceAccountKey.json');
+} catch (err) {
+    // إذا لم يوجد الملف، نستخدم متغيرات البيئة (للإنتاج)
+    if (process.env.FIREBASE_PROJECT_ID) {
+        serviceAccount = {
+            type: 'service_account',
+            project_id: process.env.FIREBASE_PROJECT_ID,
+            private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
+            private_key: cleanPrivateKey(process.env.FIREBASE_PRIVATE_KEY),
+            client_email: process.env.FIREBASE_CLIENT_EMAIL,
+            client_id: process.env.FIREBASE_CLIENT_ID,
+            auth_uri: 'https://accounts.google.com/o/oauth2/auth',
+            token_uri: 'https://oauth2.googleapis.com/token',
+        };
+    } else {
+        console.error('❌ خطأ: لم يتم العثور على ملف serviceAccountKey.json أو متغيرات البيئة');
+        process.exit(1);
+    }
+}
 
 // تهيئة تطبيق فايربيس باستخدام بيانات التوثيق
 initializeApp({
