@@ -1,398 +1,1230 @@
-<!-- تحديد نوع المستند كملف HTML5 -->
 <!DOCTYPE html>
-<!-- تحديد لغة المستند كعربية واتجاه النص من اليمين لليسار -->
 <html lang="ar" dir="rtl">
-<!-- بداية قسم الرأس (head) -->
 <head>
-    <!-- ترميز الحروف العربية -->
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- عنوان الصفحة -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>مزرعة العلاليش 🐑 - الإدارة المتكاملة</title>
-    <!-- مكتبة TailwindCSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- مكتبة Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- خط تاجوال العربي -->
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
-    <!-- أيقونات FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- إعدادات CSS مخصصة لتأثيرات الزجاج والرسومات -->
     <style>
-        body { font-family: 'Tajawal', sans-serif; background-color: #f0fdf4; }
-        .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3); }
+        /* ===== أساسيات ===== */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --green-deep: #064e3b;
+            --green-mid: #065f46;
+            --green-bright: #10b981;
+            --green-light: #34d399;
+            --gold: #f59e0b;
+            --gold-light: #fbbf24;
+            --bg-page: #f0fdf4;
+            --surface: #ffffff;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --border: #e5e7eb;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 20px rgba(0,0,0,0.08);
+            --shadow-lg: 0 8px 40px rgba(0,0,0,0.12);
+            --radius-card: 20px;
+            --radius-btn: 14px;
+            --radius-input: 12px;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: linear-gradient(160deg, #ecfdf5 0%, #d1fae5 50%, #a7f3d0 100%);
+            min-height: 100vh;
+            color: var(--text-primary);
+            overflow-x: hidden;
+            padding-bottom: 80px;
+        }
+
+        /* ===== Scrollbar ===== */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--green-bright); border-radius: 99px; }
+
+        /* ===== Glass Morphism ===== */
+        .glass {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* ===== hidden-tab (لا تعديل - يستخدمها app.js) ===== */
         .hidden-tab { display: none !important; }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb { background: #22c55e; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #16a34a; }
-        
-        /* تأثيرات النوافذ المنبثقة (Custom Modals) */
-        .modal-overlay { background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); }
-        .modal-scale-up { animation: scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+
+        /* ===== Header ===== */
+        .app-header {
+            background: linear-gradient(135deg, var(--green-deep) 0%, var(--green-mid) 60%, #047857 100%);
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            box-shadow: 0 4px 24px rgba(6, 78, 59, 0.35);
+        }
+
+        .app-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(52,211,153,0.4), transparent);
+        }
+
+        /* ===== Hero Card ===== */
+        .hero-card {
+            background: linear-gradient(145deg, #0a2818 0%, #0f3d25 50%, #064e3b 100%);
+            border-radius: 0 0 32px 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-card::before {
+            content: '';
+            position: absolute;
+            top: -60px; left: -60px;
+            width: 220px; height: 220px;
+            background: radial-gradient(circle, rgba(16,185,129,0.15) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-card::after {
+            content: '';
+            position: absolute;
+            bottom: -40px; right: -40px;
+            width: 180px; height: 180px;
+            background: radial-gradient(circle, rgba(245,158,11,0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-sheep-icon {
+            font-size: 80px;
+            line-height: 1;
+            filter: drop-shadow(0 4px 16px rgba(0,0,0,0.3));
+            animation: floatSheep 4s ease-in-out infinite;
+        }
+
+        @keyframes floatSheep {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+
+        /* ===== Bottom Navigation Bar ===== */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: rgba(255,255,255,0.97);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(229,231,235,0.8);
+            display: flex;
+            z-index: 50;
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+            box-shadow: 0 -4px 24px rgba(0,0,0,0.1);
+            height: 65px;
+        }
+
+        .bottom-nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            color: #9ca3af;
+            font-size: 10px;
+            font-family: 'Tajawal', sans-serif;
+            font-weight: 500;
+            gap: 3px;
+            border: none;
+            background: none;
+            padding: 8px 4px;
+            min-height: 44px;
+            position: relative;
+        }
+
+        .bottom-nav-item i {
+            font-size: 19px;
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .bottom-nav-item.active {
+            color: var(--green-mid);
+        }
+
+        .bottom-nav-item.active i {
+            transform: translateY(-2px) scale(1.1);
+        }
+
+        .bottom-nav-item.active::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 50%;
+            transform: translateX(-50%);
+            width: 32px; height: 3px;
+            background: var(--green-bright);
+            border-radius: 0 0 4px 4px;
+        }
+
+        /* إخفاء Bottom Nav على سطح المكتب وإظهار tabs العلوية */
+        @media (min-width: 769px) {
+            .bottom-nav { display: none; }
+            body { padding-bottom: 0; }
+        }
+
+        /* إخفاء tabs العلوية على الهاتف */
+        .desktop-tabs {
+            display: none;
+        }
+
+        @media (min-width: 769px) {
+            .desktop-tabs { display: flex; }
+        }
+
+        /* ===== Tab Buttons (Desktop) ===== */
+        .tab-btn {
+            padding: 9px 18px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 13px;
+            font-family: 'Tajawal', sans-serif;
+            transition: all 0.25s ease;
+            color: rgba(255,255,255,0.75);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-height: 38px;
+        }
+
+        .tab-btn:hover {
+            color: white;
+            background: rgba(255,255,255,0.12);
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: var(--green-mid);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+        }
+
+        /* ===== Tab Content Animation ===== */
+        .tab-content {
+            animation: fadeSlideIn 0.35s ease forwards;
+        }
+
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(14px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== Stat Cards ===== */
+        .stat-card {
+            background: white;
+            border-radius: var(--radius-card);
+            padding: 20px 16px;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-icon-wrap {
+            width: 48px; height: 48px;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px;
+            margin-bottom: 12px;
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: 900;
+            line-height: 1.1;
+            letter-spacing: -0.5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-top: 4px;
+        }
+
+        .stat-unit {
+            font-size: 13px;
+            font-weight: 400;
+            color: var(--text-secondary);
+            margin-right: 2px;
+        }
+
+        /* ===== Form Inputs ===== */
+        .form-field input,
+        .form-field select,
+        .form-field textarea {
+            width: 100%;
+            background: #f9fafb;
+            border: 1.5px solid #e5e7eb;
+            border-radius: var(--radius-input);
+            padding: 13px 14px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 15px;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+            outline: none;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        .form-field input:focus,
+        .form-field select:focus {
+            border-color: var(--green-bright);
+            box-shadow: 0 0 0 4px rgba(16,185,129,0.12);
+            background: white;
+        }
+
+        .form-field.sales input:focus,
+        .form-field.sales select:focus {
+            border-color: #059669;
+            box-shadow: 0 0 0 4px rgba(5,150,105,0.12);
+        }
+
+        .form-field.expense input:focus,
+        .form-field.expense select:focus {
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 4px rgba(245,158,11,0.12);
+        }
+
+        .form-field.batches input:focus,
+        .form-field.batches select:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 4px rgba(99,102,241,0.12);
+        }
+
+        .form-field.meds input:focus,
+        .form-field.meds select:focus {
+            border-color: #f43f5e;
+            box-shadow: 0 0 0 4px rgba(244,63,94,0.12);
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 7px;
+        }
+
+        /* ===== Buttons ===== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: none;
+            border-radius: var(--radius-btn);
+            padding: 13px 24px;
+            font-family: 'Tajawal', sans-serif;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-height: 48px;
+        }
+
+        .btn:active { transform: scale(0.97); }
+
+        .btn-green {
+            background: linear-gradient(135deg, var(--green-deep), var(--green-bright));
+            color: white;
+            box-shadow: 0 4px 16px rgba(16,185,129,0.35);
+            width: 100%;
+        }
+
+        .btn-green:hover { box-shadow: 0 6px 24px rgba(16,185,129,0.45); }
+
+        .btn-emerald {
+            background: linear-gradient(135deg, #065f46, #10b981);
+            color: white;
+            box-shadow: 0 4px 16px rgba(5,150,105,0.35);
+            width: 100%;
+        }
+
+        .btn-amber {
+            background: linear-gradient(135deg, #b45309, #f59e0b);
+            color: white;
+            box-shadow: 0 4px 16px rgba(245,158,11,0.35);
+            width: 100%;
+        }
+
+        .btn-indigo {
+            background: linear-gradient(135deg, #3730a3, #6366f1);
+            color: white;
+            box-shadow: 0 4px 16px rgba(99,102,241,0.35);
+            width: 100%;
+        }
+
+        .btn-rose {
+            background: linear-gradient(135deg, #9f1239, #f43f5e);
+            color: white;
+            box-shadow: 0 4px 16px rgba(244,63,94,0.35);
+            width: 100%;
+        }
+
+        .btn-danger-ghost {
+            background: rgba(239,68,68,0.08);
+            color: #dc2626;
+            border: 1.5px solid rgba(239,68,68,0.2);
+            padding: 8px 14px;
+            font-size: 13px;
+            border-radius: 10px;
+            min-height: 36px;
+        }
+
+        .btn-danger-ghost:hover {
+            background: #ef4444;
+            color: white;
+            border-color: #ef4444;
+        }
+
+        @media (min-width: 769px) {
+            .btn-green,
+            .btn-emerald,
+            .btn-amber,
+            .btn-indigo,
+            .btn-rose {
+                width: auto;
+                min-width: 180px;
+            }
+        }
+
+        /* ===== Section Card ===== */
+        .section-card {
+            background: white;
+            border-radius: 22px;
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .section-header {
+            padding: 20px 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .section-icon {
+            width: 42px; height: 42px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .section-title {
+            font-size: 17px;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .section-body { padding: 0 20px 20px; }
+
+        /* ===== Table Styles (Desktop) ===== */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .data-table thead tr {
+            background: #f8fafc;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .data-table th {
+            padding: 12px 14px;
+            font-weight: 700;
+            color: #374151;
+            text-align: right;
+            font-size: 13px;
+        }
+
+        .data-table tbody tr {
+            border-bottom: 1px solid #f3f4f6;
+            transition: background 0.15s;
+        }
+
+        .data-table tbody tr:hover { background: #f9fafb; }
+
+        .data-table td {
+            padding: 13px 14px;
+            color: #374151;
+            vertical-align: middle;
+        }
+
+        .data-table tbody tr:last-child { border-bottom: none; }
+
+        /* ===== Empty State ===== */
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: #9ca3af;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 12px;
+            opacity: 0.4;
+        }
+
+        .empty-state p {
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        /* ===== Modal Overlay ===== */
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+        }
+
+        .modal-scale-up {
+            animation: scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
         @keyframes scaleUp {
-            from { transform: scale(0.8); opacity: 0; }
+            from { transform: scale(0.82); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
         }
-        /* تأثيرات التنبيه السريع (Toast) */
-        .toast-slide-in { animation: slideIn 0.4s ease-out forwards; }
-        .toast-fade-out { animation: fadeOut 0.4s ease-in forwards; }
-        @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes fadeOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(-100%); opacity: 0; } }
+
+        /* ===== Toast Notifications ===== */
+        #toast-container {
+            position: fixed;
+            top: 80px;
+            right: 16px;
+            left: auto;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast-slide-in { animation: toastIn 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+        .toast-fade-out { animation: toastOut 0.35s ease-in forwards; }
+
+        @keyframes toastIn {
+            from { transform: translateX(110%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes toastOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(110%); opacity: 0; }
+        }
+
+        /* ===== Reminder Alert ===== */
+        .reminder-item {
+            border-radius: 14px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        /* ===== Badge ===== */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 99px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        /* ===== Chart Wrapper ===== */
+        .chart-wrap {
+            background: white;
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* ===== Reset Button ===== */
+        .btn-reset {
+            background: rgba(239,68,68,0.08);
+            color: #dc2626;
+            border: 1.5px solid rgba(239,68,68,0.18);
+            border-radius: 12px;
+            padding: 10px 16px;
+            font-family: 'Tajawal', sans-serif;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            transition: all 0.2s;
+            min-height: 44px;
+        }
+
+        .btn-reset:hover {
+            background: #ef4444;
+            color: white;
+            border-color: #ef4444;
+            box-shadow: 0 4px 16px rgba(239,68,68,0.3);
+        }
+
+        /* ===== Divider ===== */
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #e5e7eb, transparent);
+            margin: 18px 0;
+        }
+
+        /* ===== Pulse dot ===== */
+        .pulse-dot {
+            width: 8px; height: 8px;
+            background: var(--green-bright);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.85); }
+        }
+
+        /* ===== Responsive Adjustments ===== */
+        @media (max-width: 640px) {
+            .stat-number { font-size: 24px; }
+            .section-title { font-size: 15px; }
+            .form-label { font-size: 12px; }
+            .btn { font-size: 14px; padding: 12px 20px; }
+        }
+
+        /* ===== Safe area fix for hero ===== */
+        .hero-card {
+            padding-top: env(safe-area-inset-top, 0px);
+        }
     </style>
 </head>
-<body class="text-gray-800 pb-12 bg-gradient-to-br from-green-50 to-emerald-100 min-h-screen relative overflow-x-hidden">
+<body>
 
-    <!-- حاوية التنبيهات السريعة (Toasts Container) -->
-    <div id="toast-container" class="fixed bottom-4 left-4 z-50 flex flex-col gap-2"></div>
+    <!-- ===== Toast Container ===== -->
+    <div id="toast-container"></div>
 
-    <!-- نافذة التأكيد المنبثقة (Confirm Modal) مخفية افتراضياً -->
+    <!-- ===== Confirm Modal ===== -->
     <div id="confirm-modal" class="fixed inset-0 z-50 flex items-center justify-center modal-overlay hidden">
-        <div class="glass w-11/12 max-w-sm rounded-3xl p-6 text-center shadow-2xl modal-scale-up">
-            <div id="confirm-icon" class="text-6xl mb-4 text-amber-500"><i class="fa-solid fa-triangle-exclamation"></i></div>
-            <h2 id="confirm-title" class="text-2xl font-bold mb-2 text-gray-800">هل أنت متأكد؟</h2>
-            <p id="confirm-msg" class="text-gray-500 mb-6 text-sm">لا يمكن التراجع عن هذا الإجراء!</p>
-            <div class="flex justify-center gap-4">
-                <button id="btn-confirm-cancel" class="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold rounded-xl transition-colors">إلغاء</button>
-                <button id="btn-confirm-ok" class="px-6 py-2 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl shadow-lg transition-colors">نعم، متأكد</button>
+        <div class="bg-white w-11/12 max-w-sm rounded-3xl p-7 text-center shadow-2xl modal-scale-up">
+            <div id="confirm-icon" class="text-5xl mb-4 text-amber-500">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h2 id="confirm-title" class="text-xl font-black mb-2 text-gray-900">هل أنت متأكد؟</h2>
+            <p id="confirm-msg" class="text-gray-500 mb-7 text-sm leading-relaxed">لا يمكن التراجع عن هذا الإجراء!</p>
+            <div class="flex gap-3">
+                <button id="btn-confirm-cancel" class="flex-1 btn" style="background:#f3f4f6;color:#374151;min-height:48px;font-size:15px;">إلغاء</button>
+                <button id="btn-confirm-ok" class="flex-1 btn" style="background:linear-gradient(135deg,#991b1b,#ef4444);color:white;min-height:48px;font-size:15px;box-shadow:0 4px 16px rgba(239,68,68,0.35);">نعم، متأكد</button>
             </div>
         </div>
     </div>
 
-    <!-- الشريط الجانبي والتنقل العلوي (شريط البار) -->
-    <nav class="bg-gradient-to-r from-green-800 to-emerald-700 text-white shadow-lg sticky top-0 z-40">
-        <div class="container mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+    <!-- ===== App Header ===== -->
+    <header class="app-header">
+        <div class="max-w-5xl mx-auto px-5 py-4 flex items-center justify-between">
+            <!-- Logo -->
             <div class="flex items-center gap-3">
-                <i class="fa-solid fa-tractor text-3xl text-emerald-300"></i>
+                <div style="width:42px;height:42px;background:rgba(255,255,255,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;">
+                    🐑
+                </div>
                 <div>
-                    <h1 class="text-2xl font-extrabold tracking-tight">مشروع العلاليش 🐑</h1>
-                    <p class="text-sm text-green-200 opacity-90">النظام المتكامل لإدارة المزرعة</p>
-                </div>
-            </div>
-            
-            <!-- أزرار التنقل (Tabs) -->
-            <div class="flex flex-wrap justify-center gap-1 bg-green-900/50 p-1 rounded-xl backdrop-blur-sm overflow-x-auto">
-                <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn active px-4 py-2 rounded-lg font-bold text-sm transition-all duration-300 bg-white text-green-800 shadow-md">
-                    <i class="fa-solid fa-house ml-1"></i> الرئيسية
-                </button>
-                <button onclick="switchTab('sales')" id="btn-sales" class="tab-btn px-4 py-2 rounded-lg font-bold text-sm text-green-100 hover:text-white transition-all duration-300">
-                    <i class="fa-solid fa-sack-dollar ml-1"></i> المبيعات
-                </button>
-                <button onclick="switchTab('expenses')" id="btn-expenses" class="tab-btn px-4 py-2 rounded-lg font-bold text-sm text-green-100 hover:text-white transition-all duration-300">
-                    <i class="fa-solid fa-money-bill-wave ml-1"></i> المصروفات
-                </button>
-                <button onclick="switchTab('batches')" id="btn-batches" class="tab-btn px-4 py-2 rounded-lg font-bold text-sm text-green-100 hover:text-white transition-all duration-300">
-                    <i class="fa-solid fa-sheep ml-1"></i> الدفعات
-                </button>
-                <button onclick="switchTab('medications')" id="btn-medications" class="tab-btn px-4 py-2 rounded-lg font-bold text-sm text-green-100 hover:text-white transition-all duration-300">
-                    <i class="fa-solid fa-syringe ml-1"></i> الأدوية
-                </button>
-            </div>
-        </div>
-    </nav>
-
-    <!-- الحاوية الرئيسية للمحتوى -->
-    <main class="container mx-auto px-4 mt-8 max-w-6xl">
-
-        <!-- ========================================== -->
-        <!-- 0. قسم لوحة القيادة الرئيسية (Dashboard) -->
-        <!-- ========================================== -->
-        <div id="tab-dashboard" class="tab-content animate-fade-in">
-            <!-- رسالة الترحيب والتنبيهات المدمجة -->
-            <div class="flex items-center justify-between mb-8 flex-wrap gap-4">
-                <h2 class="text-3xl font-extrabold text-green-800"><i class="fa-solid fa-chart-line ml-2"></i> نظرة عامة على المزرعة</h2>
-                <button onclick="resetSystem()" class="px-5 py-2 bg-red-100 text-red-700 hover:bg-red-600 hover:text-white font-bold rounded-xl transition-colors flex items-center gap-2 border border-red-200">
-                    <i class="fa-solid fa-power-off"></i> تصفير النظام (حذف الكل)
-                </button>
-            </div>
-
-            <!-- قسم التنبيهات للأدوية والتطعيمات (ينتقل هنا ليكون في واجهة التطبيق) -->
-            <div id="medication-reminders" class="mb-8 hidden">
-                <!-- سيتم ملؤه من الجافاسكربت -->
-            </div>
-
-            <!-- الكروت الإحصائية الشاملة العلوية -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <!-- إجمالي الخرفان الموجودة -->
-                <div class="glass p-6 rounded-3xl shadow-md border-r-4 border-indigo-500 relative overflow-hidden group">
-                    <i class="fa-solid fa-sheep absolute top-2 left-2 text-6xl text-indigo-100 opacity-50 group-hover:scale-110 transition-transform"></i>
-                    <h3 class="text-gray-500 font-bold mb-1 text-sm">الرصيد الحي (الأغنام الحالية)</h3>
-                    <p class="text-3xl font-black text-gray-800"><span id="dash-total-sheep">0</span> <span class="text-lg text-gray-500 font-normal">رأس</span></p>
-                </div>
-                <!-- متوسط التكلفة (السعر والمصروفات مقسوم على إجمالي الدفعات) -->
-                <div class="glass p-6 rounded-3xl shadow-md border-r-4 border-purple-500 relative overflow-hidden group">
-                    <i class="fa-solid fa-calculator absolute top-2 left-2 text-6xl text-purple-100 opacity-50 group-hover:scale-110 transition-transform"></i>
-                    <h3 class="text-gray-500 font-bold mb-1 text-sm">متوسط التكلفة الكلية للرأس</h3>
-                    <p class="text-3xl font-black text-gray-800"><span id="dash-avg-cost">0</span> <span class="text-lg text-gray-500 font-normal">د.ل</span></p>
-                </div>
-                <!-- إجمالي المصروفات -->
-                <div class="glass p-6 rounded-3xl shadow-md border-r-4 border-orange-500 relative overflow-hidden group">
-                    <i class="fa-solid fa-money-bill-trend-up absolute top-2 left-2 text-6xl text-orange-100 opacity-50 group-hover:scale-110 transition-transform"></i>
-                    <h3 class="text-gray-500 font-bold mb-1 text-sm">إجمالي المصروفات التشغيلية</h3>
-                    <p class="text-3xl font-black text-gray-800"><span id="dash-total-exp">0</span> <span class="text-lg text-gray-500 font-normal">د.ل</span></p>
-                </div>
-                <!-- صافي الأرباح المحققة من المبيعات -->
-                <div class="glass p-6 rounded-3xl shadow-md border-r-4 border-emerald-500 relative overflow-hidden group">
-                    <i class="fa-solid fa-sack-dollar absolute top-2 left-2 text-6xl text-emerald-100 opacity-50 group-hover:scale-110 transition-transform"></i>
-                    <h3 class="text-gray-500 font-bold mb-1 text-sm">صافي الأرباح (من المبيعات)</h3>
-                    <p class="text-3xl font-black text-emerald-700"><span id="dash-total-profit">0</span> <span class="text-lg text-emerald-600 font-normal">د.ل</span></p>
-                </div>
-            </div>
-
-            <!-- الرسوم البيانية -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- الدائري -->
-                <div class="glass p-6 rounded-3xl shadow-md">
-                    <h3 class="text-lg font-bold text-gray-700 mb-4 text-center border-b pb-2">توزيع المصروفات حسب التصنيف</h3>
-                    <div class="relative h-64 w-full flex justify-center"><canvas id="categoryChart"></canvas></div>
-                </div>
-                <!-- الخطي -->
-                <div class="glass p-6 rounded-3xl shadow-md">
-                    <h3 class="text-lg font-bold text-gray-700 mb-4 text-center border-b pb-2">حركة المصروفات الشهرية</h3>
-                    <div class="relative h-64 w-full"><canvas id="monthlyChart"></canvas></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ========================================== -->
-        <!-- 1. قسم المبيعات والأرباح (Sales Section) -->
-        <!-- ========================================== -->
-        <div id="tab-sales" class="tab-content hidden-tab animate-fade-in">
-            <section class="glass p-8 rounded-3xl shadow-md mb-8 border-t-4 border-emerald-500">
-                <h2 class="text-2xl font-bold mb-6 text-emerald-800 flex items-center gap-2 border-b pb-4"><i class="fa-solid fa-handshake"></i> تسجيل عملية بيع جديدة</h2>
-                <form id="sale-form" class="space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">العدد المباع (رأس)</label>
-                            <input type="number" id="sale-count" required min="1" placeholder="مثال: 5" class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-left" dir="ltr">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">السعر الإجمالي للبيعة (د.ل)</label>
-                            <input type="number" id="sale-price" required min="1" placeholder="0.00" class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-left" dir="ltr">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">اسم المشتري (اختياري)</label>
-                            <input type="text" id="sale-buyer" placeholder="أدخل اسم المشتري..." class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">تاريخ البيع</label>
-                            <input type="date" id="sale-date" required class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                        </div>
+                    <div class="font-black text-white" style="font-size:17px;letter-spacing:-0.3px;line-height:1.2;">مزرعة العلاليش</div>
+                    <div style="font-size:11px;color:rgba(255,255,255,0.6);display:flex;align-items:center;gap:5px;">
+                        <span class="pulse-dot"></span>
+                        النظام المتكامل
                     </div>
+                </div>
+            </div>
+
+            <!-- Desktop Tabs -->
+            <nav class="desktop-tabs items-center gap-1 bg-black/20 p-1 rounded-xl">
+                <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn active">
+                    <i class="fa-solid fa-house"></i> الرئيسية
+                </button>
+                <button onclick="switchTab('sales')" id="btn-sales" class="tab-btn">
+                    <i class="fa-solid fa-sack-dollar"></i> المبيعات
+                </button>
+                <button onclick="switchTab('expenses')" id="btn-expenses" class="tab-btn">
+                    <i class="fa-solid fa-money-bill-wave"></i> المصروفات
+                </button>
+                <button onclick="switchTab('batches')" id="btn-batches" class="tab-btn">
+                    <i class="fa-solid fa-sheep"></i> الدفعات
+                </button>
+                <button onclick="switchTab('medications')" id="btn-medications" class="tab-btn">
+                    <i class="fa-solid fa-syringe"></i> الأدوية
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- ===== Main Content ===== -->
+    <main class="max-w-5xl mx-auto px-4 pb-6">
+
+        <!-- ========== DASHBOARD TAB ========== -->
+        <div id="tab-dashboard" class="tab-content">
+
+            <!-- Hero Card -->
+            <div class="hero-card px-6 py-8 mb-6">
+                <div class="flex items-center justify-between flex-wrap gap-4">
                     <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-2">ملاحظات (طريقة الدفع، إلخ)</label>
-                        <input type="text" id="sale-notes" placeholder="..." class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <div style="font-size:12px;color:rgba(52,211,153,0.85);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">
+                            <i class="fa-solid fa-location-dot ml-1"></i> مزرعة العلاليش
+                        </div>
+                        <h1 class="font-black text-white mb-2" style="font-size:26px;letter-spacing:-0.5px;line-height:1.2;">
+                            نظرة عامة<br>على المزرعة
+                        </h1>
+                        <div style="font-size:13px;color:rgba(255,255,255,0.5);">
+                            <i class="fa-regular fa-calendar ml-1"></i>
+                            <span id="hero-date">...</span>
+                        </div>
                     </div>
-                    <div class="pt-2">
-                        <button type="submit" class="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white font-bold rounded-xl shadow-lg transition duration-200 flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-check"></i> حفظ المبيعات
-                        </button>
+                    <div class="text-center">
+                        <div class="hero-sheep-icon">🐑</div>
+                        <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:4px;">قطيعك بخير</div>
                     </div>
-                </form>
-            </section>
-
-            <section class="glass p-8 rounded-3xl shadow-md">
-                <h2 class="text-xl font-bold mb-6 text-gray-800 flex items-center gap-2"><i class="fa-solid fa-clipboard-list text-emerald-600"></i> سجل المبيعات والأرباح</h2>
-                <div class="overflow-x-auto rounded-xl border border-gray-100">
-                    <table class="w-full text-right border-collapse bg-white">
-                        <thead>
-                            <tr class="bg-gray-50 border-b border-gray-200 text-gray-600 text-sm">
-                                <th class="p-4 font-bold">التاريخ</th>
-                                <th class="p-4 font-bold">المشتري</th>
-                                <th class="p-4 font-bold">العدد</th>
-                                <th class="p-4 font-bold">سعر البيع</th>
-                                <th class="p-4 font-bold">متوسط سعر الرأس</th>
-                                <th class="p-4 font-bold">الربح الصافي</th>
-                                <th class="p-4 font-bold text-center">إجراء</th>
-                            </tr>
-                        </thead>
-                        <tbody id="sales-list" class="divide-y divide-gray-100"></tbody>
-                    </table>
                 </div>
-            </section>
+
+                <!-- Quick Stats Row in Hero -->
+                <div class="mt-6 pt-5" style="border-top:1px solid rgba(255,255,255,0.1);">
+                    <div class="grid grid-cols-3 gap-3 text-center">
+                        <div>
+                            <div class="font-black" style="font-size:24px;color:var(--gold);"><span id="dash-total-sheep">0</span></div>
+                            <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px;">رأس حالياً</div>
+                        </div>
+                        <div style="border-right:1px solid rgba(255,255,255,0.1);border-left:1px solid rgba(255,255,255,0.1);">
+                            <div class="font-black" style="font-size:24px;color:#34d399;"><span id="dash-total-profit">0</span></div>
+                            <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px;">صافي الأرباح</div>
+                        </div>
+                        <div>
+                            <div class="font-black" style="font-size:24px;color:#f87171;"><span id="dash-total-exp">0</span></div>
+                            <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px;">المصروفات</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Medication Reminders -->
+            <div id="medication-reminders" class="mb-5 hidden"></div>
+
+            <!-- Top Action Row -->
+            <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+                <div>
+                    <h2 class="font-black text-gray-800" style="font-size:18px;">الإحصائيات التفصيلية</h2>
+                    <p style="font-size:13px;color:var(--text-secondary);">ملخص شامل للمزرعة</p>
+                </div>
+                <button onclick="resetSystem()" class="btn-reset">
+                    <i class="fa-solid fa-power-off"></i>
+                    تصفير النظام
+                </button>
+            </div>
+
+            <!-- Stat Cards Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <!-- الخرفان الحالية -->
+                <div class="stat-card">
+                    <div class="stat-icon-wrap" style="background:rgba(99,102,241,0.1);">
+                        <i class="fa-solid fa-sheep" style="color:#6366f1;"></i>
+                    </div>
+                    <div class="stat-number" style="color:#6366f1;">
+                        <span id="dash-total-sheep-card">0</span>
+                    </div>
+                    <div class="stat-label">الأغنام الحالية</div>
+                    <div style="font-size:11px;color:#9ca3af;margin-top:2px;">رأس في القطيع</div>
+                </div>
+
+                <!-- متوسط التكلفة -->
+                <div class="stat-card">
+                    <div class="stat-icon-wrap" style="background:rgba(168,85,247,0.1);">
+                        <i class="fa-solid fa-calculator" style="color:#a855f7;"></i>
+                    </div>
+                    <div class="stat-number" style="color:#a855f7;">
+                        <span id="dash-avg-cost">0</span>
+                    </div>
+                    <div class="stat-label">متوسط التكلفة</div>
+                    <div style="font-size:11px;color:#9ca3af;margin-top:2px;">دينار / رأس</div>
+                </div>
+
+                <!-- المصروفات -->
+                <div class="stat-card">
+                    <div class="stat-icon-wrap" style="background:rgba(249,115,22,0.1);">
+                        <i class="fa-solid fa-money-bill-trend-up" style="color:#f97316;"></i>
+                    </div>
+                    <div class="stat-number" style="color:#f97316;">
+                        <span id="dash-total-exp-card">0</span>
+                    </div>
+                    <div class="stat-label">إجمالي المصروفات</div>
+                    <div style="font-size:11px;color:#9ca3af;margin-top:2px;">دينار ليبي</div>
+                </div>
+
+                <!-- الأرباح -->
+                <div class="stat-card">
+                    <div class="stat-icon-wrap" style="background:rgba(16,185,129,0.1);">
+                        <i class="fa-solid fa-sack-dollar" style="color:#10b981;"></i>
+                    </div>
+                    <div class="stat-number" style="color:#10b981;">
+                        <span id="dash-total-profit-card">0</span>
+                    </div>
+                    <div class="stat-label">صافي الأرباح</div>
+                    <div style="font-size:11px;color:#9ca3af;margin-top:2px;">دينار ليبي</div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-4">
+                <div class="chart-wrap">
+                    <h3 class="font-bold text-gray-700 mb-4 text-center" style="font-size:14px;">
+                        <i class="fa-solid fa-chart-pie ml-1" style="color:var(--green-bright);"></i>
+                        توزيع المصروفات حسب التصنيف
+                    </h3>
+                    <div style="position:relative;height:220px;display:flex;justify-content:center;">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-wrap">
+                    <h3 class="font-bold text-gray-700 mb-4 text-center" style="font-size:14px;">
+                        <i class="fa-solid fa-chart-line ml-1" style="color:var(--green-bright);"></i>
+                        حركة المصروفات الشهرية
+                    </h3>
+                    <div style="position:relative;height:220px;">
+                        <canvas id="monthlyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
-        <!-- ========================================== -->
-        <!-- 2. قسم المصروفات (Expenses Section) -->
-        <!-- ========================================== -->
-        <div id="tab-expenses" class="tab-content hidden-tab animate-fade-in">
-            <section class="glass p-8 rounded-3xl shadow-md mb-8">
-                <h2 class="text-2xl font-bold mb-6 text-green-800 flex items-center gap-2 border-b pb-4"><i class="fa-solid fa-plus-circle"></i> تسجيل مصروف جديد</h2>
-                <form id="expense-form" class="space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div class="col-span-1 lg:col-span-2">
-                            <label class="block text-sm font-bold text-gray-700 mb-2">البيان</label>
-                            <input type="text" id="exp-title" required placeholder="..." class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">المبلغ (د.ل)</label>
-                            <input type="number" id="exp-amount" required min="1" placeholder="0" class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500 text-left" dir="ltr">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">التصنيف</label>
-                            <select id="exp-category" required class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer">
-                                <option value="أعلاف وتغذية">أعلاف وتغذية 🌾</option>
-                                <option value="تأسيس ومعدات">تأسيس ومعدات 🛠️</option>
-                                <option value="بيطرة وصحة">بيطرة وصحة 💉</option>
-                                <option value="تشغيل ونقل">تشغيل ونقل 🚛</option>
-                                <option value="أخرى">أخرى 📎</option>
-                            </select>
-                        </div>
+        <!-- ========== SALES TAB ========== -->
+        <div id="tab-sales" class="tab-content hidden-tab">
+
+            <!-- Page Header -->
+            <div class="flex items-center gap-3 mb-5 mt-4">
+                <div style="width:46px;height:46px;background:linear-gradient(135deg,#065f46,#10b981);border-radius:14px;display:flex;align-items:center;justify-content:center;">
+                    <i class="fa-solid fa-sack-dollar text-white" style="font-size:20px;"></i>
+                </div>
+                <div>
+                    <h2 class="font-black text-gray-900" style="font-size:20px;">المبيعات والأرباح</h2>
+                    <p style="font-size:13px;color:var(--text-secondary);">تسجيل وتتبع عمليات البيع</p>
+                </div>
+            </div>
+
+            <!-- Add Sale Form Card -->
+            <div class="section-card mb-5">
+                <div class="section-header" style="border-bottom:2px solid #ecfdf5;padding-bottom:16px;">
+                    <div class="section-icon" style="background:rgba(16,185,129,0.12);">
+                        <i class="fa-solid fa-handshake" style="color:#059669;"></i>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">تاريخ المصروف</label>
-                            <input type="date" id="exp-date" required class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500">
+                    <div class="section-title">تسجيل عملية بيع جديدة</div>
+                </div>
+                <div class="section-body">
+                    <form id="sale-form">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div class="form-field sales">
+                                <label class="form-label"><i class="fa-solid fa-hashtag ml-1" style="color:#10b981;"></i> العدد المباع (رأس)</label>
+                                <input type="number" id="sale-count" required min="1" placeholder="مثال: 5" dir="ltr">
+                            </div>
+                            <div class="form-field sales">
+                                <label class="form-label"><i class="fa-solid fa-coins ml-1" style="color:#10b981;"></i> السعر الإجمالي (د.ل)</label>
+                                <input type="number" id="sale-price" required min="1" placeholder="0.00" dir="ltr">
+                            </div>
+                            <div class="form-field sales">
+                                <label class="form-label"><i class="fa-solid fa-user ml-1" style="color:#10b981;"></i> اسم المشتري</label>
+                                <input type="text" id="sale-buyer" placeholder="أدخل اسم المشتري...">
+                            </div>
+                            <div class="form-field sales">
+                                <label class="form-label"><i class="fa-regular fa-calendar ml-1" style="color:#10b981;"></i> تاريخ البيع</label>
+                                <input type="date" id="sale-date" required>
+                            </div>
                         </div>
-                        <div class="col-span-1 md:col-span-2">
-                            <label class="block text-sm font-bold text-gray-700 mb-2">ملاحظات</label>
-                            <input type="text" id="exp-notes" placeholder="..." class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <div class="form-field sales mb-5">
+                            <label class="form-label"><i class="fa-solid fa-note-sticky ml-1" style="color:#10b981;"></i> ملاحظات</label>
+                            <input type="text" id="sale-notes" placeholder="طريقة الدفع، وغيرها...">
                         </div>
+                        <button type="submit" class="btn btn-emerald">
+                            <i class="fa-solid fa-check"></i> حفظ البيعة
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Sales List -->
+            <div class="section-card">
+                <div class="section-header" style="border-bottom:1px solid #f3f4f6;padding-bottom:14px;">
+                    <div class="section-icon" style="background:rgba(16,185,129,0.1);">
+                        <i class="fa-solid fa-clipboard-list" style="color:#059669;"></i>
                     </div>
-                    <div class="pt-2">
-                        <button type="submit" class="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 text-white font-bold rounded-xl shadow-lg transition duration-200 flex items-center justify-center gap-2">
+                    <div class="section-title">سجل المبيعات والأرباح</div>
+                </div>
+                <div class="section-body" style="padding-top:0;">
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>التاريخ</th>
+                                    <th>المشتري</th>
+                                    <th>العدد</th>
+                                    <th>سعر البيع</th>
+                                    <th>متوسط الرأس</th>
+                                    <th>الربح الصافي</th>
+                                    <th class="text-center">إجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sales-list"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== EXPENSES TAB ========== -->
+        <div id="tab-expenses" class="tab-content hidden-tab">
+
+            <div class="flex items-center gap-3 mb-5 mt-4">
+                <div style="width:46px;height:46px;background:linear-gradient(135deg,#b45309,#f59e0b);border-radius:14px;display:flex;align-items:center;justify-content:center;">
+                    <i class="fa-solid fa-money-bill-wave text-white" style="font-size:20px;"></i>
+                </div>
+                <div>
+                    <h2 class="font-black text-gray-900" style="font-size:20px;">المصروفات التشغيلية</h2>
+                    <p style="font-size:13px;color:var(--text-secondary);">تتبع كل مصاريف المزرعة</p>
+                </div>
+            </div>
+
+            <div class="section-card mb-5">
+                <div class="section-header" style="border-bottom:2px solid #fffbeb;padding-bottom:16px;">
+                    <div class="section-icon" style="background:rgba(245,158,11,0.12);">
+                        <i class="fa-solid fa-plus-circle" style="color:#d97706;"></i>
+                    </div>
+                    <div class="section-title">تسجيل مصروف جديد</div>
+                </div>
+                <div class="section-body">
+                    <form id="expense-form">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div class="form-field expense md:col-span-2">
+                                <label class="form-label"><i class="fa-solid fa-file-lines ml-1" style="color:#d97706;"></i> البيان</label>
+                                <input type="text" id="exp-title" required placeholder="وصف المصروف...">
+                            </div>
+                            <div class="form-field expense">
+                                <label class="form-label"><i class="fa-solid fa-coins ml-1" style="color:#d97706;"></i> المبلغ (د.ل)</label>
+                                <input type="number" id="exp-amount" required min="1" placeholder="0" dir="ltr">
+                            </div>
+                            <div class="form-field expense">
+                                <label class="form-label"><i class="fa-solid fa-tags ml-1" style="color:#d97706;"></i> التصنيف</label>
+                                <select id="exp-category" required>
+                                    <option value="أعلاف وتغذية">أعلاف وتغذية 🌾</option>
+                                    <option value="تأسيس ومعدات">تأسيس ومعدات 🛠️</option>
+                                    <option value="بيطرة وصحة">بيطرة وصحة 💉</option>
+                                    <option value="تشغيل ونقل">تشغيل ونقل 🚛</option>
+                                    <option value="أخرى">أخرى 📎</option>
+                                </select>
+                            </div>
+                            <div class="form-field expense">
+                                <label class="form-label"><i class="fa-regular fa-calendar ml-1" style="color:#d97706;"></i> تاريخ المصروف</label>
+                                <input type="date" id="exp-date" required>
+                            </div>
+                            <div class="form-field expense">
+                                <label class="form-label"><i class="fa-solid fa-note-sticky ml-1" style="color:#d97706;"></i> ملاحظات</label>
+                                <input type="text" id="exp-notes" placeholder="...">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-amber">
                             <i class="fa-solid fa-save"></i> حفظ المصروف
                         </button>
-                    </div>
-                </form>
-            </section>
-
-            <section class="glass p-8 rounded-3xl shadow-md">
-                <h2 class="text-xl font-bold mb-6 text-gray-800 flex items-center gap-2"><i class="fa-solid fa-list-ul text-emerald-600"></i> سجل المصروفات التفصيلي</h2>
-                <div class="overflow-x-auto rounded-xl border border-gray-100">
-                    <table class="w-full text-right border-collapse bg-white">
-                        <thead>
-                            <tr class="bg-gray-50 border-b border-gray-200 text-gray-600 text-sm">
-                                <th class="p-4 font-bold">التاريخ</th>
-                                <th class="p-4 font-bold">البيان</th>
-                                <th class="p-4 font-bold">التصنيف</th>
-                                <th class="p-4 font-bold">المبلغ</th>
-                                <th class="p-4 font-bold text-center">إجراء</th>
-                            </tr>
-                        </thead>
-                        <tbody id="expenses-list" class="divide-y divide-gray-100"></tbody>
-                    </table>
+                    </form>
                 </div>
-            </section>
+            </div>
+
+            <div class="section-card">
+                <div class="section-header" style="border-bottom:1px solid #f3f4f6;padding-bottom:14px;">
+                    <div class="section-icon" style="background:rgba(245,158,11,0.1);">
+                        <i class="fa-solid fa-list-ul" style="color:#d97706;"></i>
+                    </div>
+                    <div class="section-title">سجل المصروفات التفصيلي</div>
+                </div>
+                <div class="section-body" style="padding-top:0;">
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>التاريخ</th>
+                                    <th>البيان</th>
+                                    <th>التصنيف</th>
+                                    <th>المبلغ</th>
+                                    <th class="text-center">إجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expenses-list"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- 3. قسم دفعات الأغنام (Batches Section) -->
-        <!-- ========================================== -->
-        <div id="tab-batches" class="tab-content hidden-tab animate-fade-in">
-            <section class="glass p-8 rounded-3xl shadow-md mb-8 border-t-4 border-indigo-500">
-                <h2 class="text-2xl font-bold mb-6 text-indigo-800 flex items-center gap-2 border-b pb-4"><i class="fa-solid fa-cart-plus"></i> إضافة دفعة أغنام جديدة (مشتريات)</h2>
-                <form id="batch-form" class="space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">العدد المشترى (رأس)</label>
-                            <input type="number" id="bat-count" required min="1" placeholder="مثال: 50" class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-left" dir="ltr">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">سعر الشراء الإجمالي (د.ل)</label>
-                            <input type="number" id="bat-price" required min="1" placeholder="0.00" class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-left" dir="ltr">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">اسم البائع</label>
-                            <input type="text" id="bat-seller" placeholder="..." class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">تاريخ الشراء</label>
-                            <input type="date" id="bat-date" required class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        </div>
+        <!-- ========== BATCHES TAB ========== -->
+        <div id="tab-batches" class="tab-content hidden-tab">
+
+            <div class="flex items-center gap-3 mb-5 mt-4">
+                <div style="width:46px;height:46px;background:linear-gradient(135deg,#3730a3,#6366f1);border-radius:14px;display:flex;align-items:center;justify-content:center;">
+                    <i class="fa-solid fa-sheep text-white" style="font-size:20px;"></i>
+                </div>
+                <div>
+                    <h2 class="font-black text-gray-900" style="font-size:20px;">دفعات الأغنام</h2>
+                    <p style="font-size:13px;color:var(--text-secondary);">إدارة مشتريات القطيع</p>
+                </div>
+            </div>
+
+            <div class="section-card mb-5">
+                <div class="section-header" style="border-bottom:2px solid #eff6ff;padding-bottom:16px;">
+                    <div class="section-icon" style="background:rgba(99,102,241,0.12);">
+                        <i class="fa-solid fa-cart-plus" style="color:#6366f1;"></i>
                     </div>
-                    <div class="pt-2">
-                        <button type="submit" class="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-indigo-700 text-white font-bold rounded-xl shadow-lg transition duration-200 flex items-center justify-center gap-2">
+                    <div class="section-title">إضافة دفعة أغنام جديدة</div>
+                </div>
+                <div class="section-body">
+                    <form id="batch-form">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div class="form-field batches">
+                                <label class="form-label"><i class="fa-solid fa-hashtag ml-1" style="color:#6366f1;"></i> العدد المشترى (رأس)</label>
+                                <input type="number" id="bat-count" required min="1" placeholder="مثال: 50" dir="ltr">
+                            </div>
+                            <div class="form-field batches">
+                                <label class="form-label"><i class="fa-solid fa-coins ml-1" style="color:#6366f1;"></i> سعر الشراء الإجمالي (د.ل)</label>
+                                <input type="number" id="bat-price" required min="1" placeholder="0.00" dir="ltr">
+                            </div>
+                            <div class="form-field batches">
+                                <label class="form-label"><i class="fa-solid fa-user ml-1" style="color:#6366f1;"></i> اسم البائع</label>
+                                <input type="text" id="bat-seller" placeholder="اسم البائع...">
+                            </div>
+                            <div class="form-field batches">
+                                <label class="form-label"><i class="fa-regular fa-calendar ml-1" style="color:#6366f1;"></i> تاريخ الشراء</label>
+                                <input type="date" id="bat-date" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-indigo">
                             <i class="fa-solid fa-plus"></i> إضافة الدفعة
                         </button>
-                    </div>
-                </form>
-            </section>
-
-            <section class="glass p-8 rounded-3xl shadow-md">
-                <h2 class="text-xl font-bold mb-6 text-gray-800 flex items-center gap-2"><i class="fa-solid fa-boxes-stacked text-indigo-600"></i> سجل دفعات الأغنام المشتراة</h2>
-                <div class="overflow-x-auto rounded-xl border border-gray-100">
-                    <table class="w-full text-right border-collapse bg-white">
-                        <thead>
-                            <tr class="bg-gray-50 border-b border-gray-200 text-gray-600 text-sm">
-                                <th class="p-4 font-bold">التاريخ</th>
-                                <th class="p-4 font-bold">عدد الأغنام</th>
-                                <th class="p-4 font-bold">البائع</th>
-                                <th class="p-4 font-bold">سعر الشراء</th>
-                                <th class="p-4 font-bold">سعر الرأس (شراء)</th>
-                                <th class="p-4 font-bold text-center">إجراء</th>
-                            </tr>
-                        </thead>
-                        <tbody id="batches-list" class="divide-y divide-gray-100"></tbody>
-                    </table>
+                    </form>
                 </div>
-            </section>
+            </div>
+
+            <div class="section-card">
+                <div class="section-header" style="border-bottom:1px solid #f3f4f6;padding-bottom:14px;">
+                    <div class="section-icon" style="background:rgba(99,102,241,0.1);">
+                        <i class="fa-solid fa-boxes-stacked" style="color:#6366f1;"></i>
+                    </div>
+                    <div class="section-title">سجل دفعات الأغنام المشتراة</div>
+                </div>
+                <div class="section-body" style="padding-top:0;">
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>التاريخ</th>
+                                    <th>عدد الأغنام</th>
+                                    <th>البائع</th>
+                                    <th>سعر الشراء</th>
+                                    <th>سعر الرأس</th>
+                                    <th class="text-center">إجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody id="batches-list"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- 4. قسم الأدوية والتطعيمات (Medications Section) -->
-        <!-- ========================================== -->
-        <div id="tab-medications" class="tab-content hidden-tab animate-fade-in">
-            <section class="glass p-8 rounded-3xl shadow-md mb-8 border-t-4 border-rose-500">
-                <h2 class="text-2xl font-bold mb-6 text-rose-800 flex items-center gap-2 border-b pb-4"><i class="fa-solid fa-notes-medical"></i> جدولة تطعيم أو دواء جديد</h2>
-                <form id="med-form" class="space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div class="col-span-1 lg:col-span-2">
-                            <label class="block text-sm font-bold text-gray-700 mb-2">اسم الدواء</label>
-                            <input type="text" id="med-name" required placeholder="مثال: إيفوماك..." class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">النوع</label>
-                            <select id="med-type" required class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 cursor-pointer">
-                                <option value="تطعيم (Vaccine)">تطعيم 💉</option>
-                                <option value="مضاد حيوي (Antibiotic)">مضاد حيوي 💊</option>
-                                <option value="فيتامينات (Vitamins)">فيتامينات 🧪</option>
-                                <option value="أخرى">أخرى 📌</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">تاريخ الاستحقاق</label>
-                            <input type="date" id="med-date" required class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500">
-                        </div>
+        <!-- ========== MEDICATIONS TAB ========== -->
+        <div id="tab-medications" class="tab-content hidden-tab">
+
+            <div class="flex items-center gap-3 mb-5 mt-4">
+                <div style="width:46px;height:46px;background:linear-gradient(135deg,#9f1239,#f43f5e);border-radius:14px;display:flex;align-items:center;justify-content:center;">
+                    <i class="fa-solid fa-syringe text-white" style="font-size:20px;"></i>
+                </div>
+                <div>
+                    <h2 class="font-black text-gray-900" style="font-size:20px;">الأدوية والتطعيمات</h2>
+                    <p style="font-size:13px;color:var(--text-secondary);">جدولة رعاية صحة القطيع</p>
+                </div>
+            </div>
+
+            <div class="section-card mb-5">
+                <div class="section-header" style="border-bottom:2px solid #fff1f2;padding-bottom:16px;">
+                    <div class="section-icon" style="background:rgba(244,63,94,0.12);">
+                        <i class="fa-solid fa-notes-medical" style="color:#f43f5e;"></i>
                     </div>
-                    <div class="grid grid-cols-1 gap-6">
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">طريقة الإعطاء وملاحظات</label>
-                            <input type="text" id="med-notes" placeholder="..." class="w-full border-0 bg-gray-50 ring-1 ring-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500">
+                    <div class="section-title">جدولة تطعيم أو دواء جديد</div>
+                </div>
+                <div class="section-body">
+                    <form id="med-form">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div class="form-field meds md:col-span-2">
+                                <label class="form-label"><i class="fa-solid fa-pills ml-1" style="color:#f43f5e;"></i> اسم الدواء</label>
+                                <input type="text" id="med-name" required placeholder="مثال: إيفوماك...">
+                            </div>
+                            <div class="form-field meds">
+                                <label class="form-label"><i class="fa-solid fa-tags ml-1" style="color:#f43f5e;"></i> النوع</label>
+                                <select id="med-type" required>
+                                    <option value="تطعيم (Vaccine)">تطعيم 💉</option>
+                                    <option value="مضاد حيوي (Antibiotic)">مضاد حيوي 💊</option>
+                                    <option value="فيتامينات (Vitamins)">فيتامينات 🧪</option>
+                                    <option value="أخرى">أخرى 📌</option>
+                                </select>
+                            </div>
+                            <div class="form-field meds">
+                                <label class="form-label"><i class="fa-regular fa-calendar ml-1" style="color:#f43f5e;"></i> تاريخ الاستحقاق</label>
+                                <input type="date" id="med-date" required>
+                            </div>
+                            <div class="form-field meds md:col-span-2">
+                                <label class="form-label"><i class="fa-solid fa-note-sticky ml-1" style="color:#f43f5e;"></i> طريقة الإعطاء وملاحظات</label>
+                                <input type="text" id="med-notes" placeholder="مثال: حقن عضلي، جرعة 5مل لكل رأس...">
+                            </div>
                         </div>
-                    </div>
-                    <div class="pt-2">
-                        <button type="submit" class="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-rose-600 to-pink-500 hover:from-rose-700 text-white font-bold rounded-xl shadow-lg transition duration-200 flex items-center justify-center gap-2">
+                        <button type="submit" class="btn btn-rose">
                             <i class="fa-solid fa-calendar-check"></i> حفظ الموعد
                         </button>
-                    </div>
-                </form>
-            </section>
-
-            <section class="glass p-8 rounded-3xl shadow-md">
-                <h2 class="text-xl font-bold mb-6 text-gray-800 flex items-center gap-2"><i class="fa-solid fa-list-check text-rose-600"></i> جدول الأدوية (الأقرب فالأقرب)</h2>
-                <div class="overflow-x-auto rounded-xl border border-gray-100">
-                    <table class="w-full text-right border-collapse bg-white">
-                        <thead>
-                            <tr class="bg-gray-50 border-b border-gray-200 text-gray-600 text-sm">
-                                <th class="p-4 font-bold">التاريخ المستحق</th>
-                                <th class="p-4 font-bold">الحالة</th>
-                                <th class="p-4 font-bold">اسم الدواء</th>
-                                <th class="p-4 font-bold">النوع</th>
-                                <th class="p-4 font-bold text-center">الإجراء</th>
-                            </tr>
-                        </thead>
-                        <tbody id="medications-list" class="divide-y divide-gray-100"></tbody>
-                    </table>
+                    </form>
                 </div>
-            </section>
+            </div>
+
+            <div class="section-card">
+                <div class="section-header" style="border-bottom:1px solid #f3f4f6;padding-bottom:14px;">
+                    <div class="section-icon" style="background:rgba(244,63,94,0.1);">
+                        <i class="fa-solid fa-list-check" style="color:#f43f5e;"></i>
+                    </div>
+                    <div class="section-title">جدول الأدوية (الأقرب فالأقرب)</div>
+                </div>
+                <div class="section-body" style="padding-top:0;">
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>التاريخ المستحق</th>
+                                    <th>الحالة</th>
+                                    <th>اسم الدواء</th>
+                                    <th>النوع</th>
+                                    <th class="text-center">الإجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody id="medications-list"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
 
     </main>
 
-    <footer class="mt-12 text-center text-gray-400 text-sm pb-4">
-        <p>تم التطوير بكل ❤️ لإدارة مشروع مزرعة الأغنام باحترافية.</p>
+    <!-- Footer -->
+    <footer class="text-center py-5" style="color:#9ca3af;font-size:12px;padding-bottom:80px;">
+        تم التطوير بكل ❤️ لإدارة مشروع مزرعة الأغنام باحترافية.
     </footer>
+
+    <!-- ===== Bottom Navigation (Mobile) ===== -->
+    <nav class="bottom-nav">
+        <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn bottom-nav-item active">
+            <i class="fa-solid fa-house"></i>
+            <span>الرئيسية</span>
+        </button>
+        <button onclick="switchTab('sales')" id="btn-sales" class="tab-btn bottom-nav-item">
+            <i class="fa-solid fa-sack-dollar"></i>
+            <span>المبيعات</span>
+        </button>
+        <button onclick="switchTab('expenses')" id="btn-expenses" class="tab-btn bottom-nav-item">
+            <i class="fa-solid fa-money-bill-wave"></i>
+            <span>المصروفات</span>
+        </button>
+        <button onclick="switchTab('batches')" id="btn-batches" class="tab-btn bottom-nav-item">
+            <i class="fa-solid fa-sheep"></i>
+            <span>الدفعات</span>
+        </button>
+        <button onclick="switchTab('medications')" id="btn-medications" class="tab-btn bottom-nav-item">
+            <i class="fa-solid fa-syringe"></i>
+            <span>الأدوية</span>
+        </button>
+    </nav>
+
+    <!-- Live date script (pure cosmetic, no logic) -->
+    <script>
+        (function() {
+            var el = document.getElementById('hero-date');
+            if (!el) return;
+            var d = new Date();
+            var days = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+            var months = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+            el.textContent = days[d.getDay()] + ' ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+
+            /* مزامنة بطاقات الإحصاء في الـ hero مع الكروت الأساسية (CSS فقط) */
+            function syncCards() {
+                var fields = [
+                    ['dash-total-sheep', 'dash-total-sheep-card'],
+                    ['dash-total-exp',   'dash-total-exp-card'],
+                    ['dash-total-profit','dash-total-profit-card'],
+                ];
+                fields.forEach(function(pair) {
+                    var src = document.getElementById(pair[0]);
+                    var dst = document.getElementById(pair[1]);
+                    if (src && dst) {
+                        var observer = new MutationObserver(function() {
+                            dst.textContent = src.textContent;
+                        });
+                        observer.observe(src, { childList: true, subtree: true, characterData: true });
+                        dst.textContent = src.textContent;
+                    }
+                });
+            }
+            syncCards();
+
+            /* تحسين Bottom Nav - sync active class بين النسختين (mobile+desktop) */
+            var origSwitch = window.switchTab;
+            function enhanceSwitch() {
+                if (typeof window.switchTab === 'function' && window.switchTab !== enhancedSwitch) {
+                    origSwitch = window.switchTab;
+                    window.switchTab = enhancedSwitch;
+                }
+            }
+            function enhancedSwitch(tabName) {
+                origSwitch(tabName);
+                document.querySelectorAll('.bottom-nav-item').forEach(function(el) {
+                    el.classList.remove('active');
+                });
+                var mobileBtn = document.querySelector('.bottom-nav #btn-' + tabName);
+                if (mobileBtn) mobileBtn.classList.add('active');
+            }
+            /* نحاول بعد تحميل app.js */
+            window.addEventListener('load', enhanceSwitch);
+            setTimeout(enhanceSwitch, 300);
+        })();
+    </script>
 
     <script src="app.js"></script>
 </body>
