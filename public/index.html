@@ -6,8 +6,14 @@
     <title>مزرعة العلاليش 🐑 - الإدارة المتكاملة</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- إضافة Firebase Client SDK للمصادقة -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    
+    
     <style>
         /* ===== أساسيات ===== */
         *, *::before, *::after {
@@ -199,6 +205,11 @@
         @media (min-width: 769px) {
             .bottom-nav { display: none; }
             body { padding-bottom: 0; }
+        }
+
+        /* إخفاء Bottom Nav في صفحة المصادقة */
+        #auth-page:not(.hidden) ~ .bottom-nav {
+            display: none;
         }
 
         /* إخفاء tabs العلوية على الهاتف */
@@ -670,8 +681,83 @@
         </div>
     </div>
 
+    <!-- ===== صفحة تسجيل الدخول ===== -->
+    <div id="auth-page" class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto" style="background: linear-gradient(160deg, #ecfdf5 0%, #d1fae5 50%, #a7f3d0 100%);">
+        <div class="bg-white w-11/12 max-w-md rounded-3xl p-8 shadow-2xl modal-scale-up my-8">
+            <!-- شعار المزرعة -->
+            <div class="text-center mb-6">
+                <div style="width:80px;height:80px;background:linear-gradient(135deg,#064e3b,#10b981);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:40px;margin:0 auto 16px;box-shadow:0 8px 24px rgba(16,185,129,0.35);">
+                    🐑
+                </div>
+                <h1 class="font-black text-gray-900" style="font-size:24px;">مزرعة العلاليش</h1>
+                <p class="text-gray-500 text-sm mt-1">نظام الإدارة المتكامل</p>
+            </div>
+
+            <!-- تبويبات التبديل بين تسجيل الدخول وإنشاء الحساب -->
+            <div class="flex bg-gray-100 rounded-xl p-1 mb-6">
+                <button onclick="showAuthTab('login')" id="tab-login" class="flex-1 py-3 rounded-lg font-bold text-sm transition-all bg-white text-green-700 shadow-sm">
+                    تسجيل الدخول
+                </button>
+                <button onclick="showAuthTab('signup')" id="tab-signup" class="flex-1 py-3 rounded-lg font-bold text-sm transition-all text-gray-500">
+                    إنشاء حساب
+                </button>
+            </div>
+
+            <!-- نموذج تسجيل الدخول -->
+            <div id="login-form-container">
+                <form id="login-form" class="space-y-4">
+                    <div class="form-field">
+                        <label class="form-label">البريد الإلكتروني</label>
+                        <input type="email" id="login-email" required placeholder="example@mail.com" style="direction:ltr;">
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">كلمة المرور</label>
+                        <input type="password" id="login-password" required placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="btn btn-green">
+                        <i class="fa-solid fa-right-to-bracket"></i>
+                        تسجيل الدخول
+                    </button>
+                </form>
+            </div>
+
+            <!-- نموذج إنشاء الحساب -->
+            <div id="signup-form-container" class="hidden">
+                <form id="signup-form" class="space-y-4">
+                    <div class="form-field">
+                        <label class="form-label">الاسم الكامل</label>
+                        <input type="text" id="signup-name" required placeholder="الاسم">
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">البريد الإلكتروني</label>
+                        <input type="email" id="signup-email" required placeholder="example@mail.com" style="direction:ltr;">
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">كلمة المرور</label>
+                        <input type="password" id="signup-password" required placeholder="••••••••" minlength="6">
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">تأكيد كلمة المرور</label>
+                        <input type="password" id="signup-confirm-password" required placeholder="••••••••" minlength="6">
+                    </div>
+                    <button type="submit" class="btn btn-green">
+                        <i class="fa-solid fa-user-plus"></i>
+                        إنشاء حساب جديد
+                    </button>
+                </form>
+            </div>
+
+            <!-- رسالة خطأ المصادقة -->
+            <div id="auth-error" class="hidden mt-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm text-center">
+                <i class="fa-solid fa-circle-xmark ml-1"></i>
+                <span id="auth-error-msg"></span>
+            </div>
+        </div>
+    </div>
+
     <!-- ===== App Header ===== -->
-    <header class="app-header">
+    <!-- إخفاء Header افتراضياً حتى يتم تسجيل الدخول -->
+    <header class="app-header hidden">
         <div class="max-w-5xl mx-auto px-5 py-4 flex items-center justify-between">
             <!-- Logo -->
             <div class="flex items-center gap-3">
@@ -686,6 +772,11 @@
                     </div>
                 </div>
             </div>
+
+            <!-- زر تسجيل الخروج للموبايل -->
+            <button onclick="handleLogout()" class="md:hidden" style="background:rgba(255,255,255,0.15);border:none;color:#fca5a5;padding:10px 16px;border-radius:10px;font-size:14px;cursor:pointer;transition:all 0.2s;">
+                <i class="fa-solid fa-right-from-bracket"></i> خروج
+            </button>
 
             <!-- Desktop Tabs -->
             <nav class="desktop-tabs items-center gap-1 bg-black/20 p-1 rounded-xl">
@@ -704,12 +795,17 @@
                 <button onclick="switchTab('medications')" id="btn-medications" class="tab-btn">
                     <i class="fa-solid fa-syringe"></i> الأدوية
                 </button>
+                <!-- زر تسجيل الخروج -->
+                <button onclick="handleLogout()" class="tab-btn" style="color:#fca5a5;">
+                    <i class="fa-solid fa-right-from-bracket"></i> خروج
+                </button>
             </nav>
         </div>
     </header>
 
     <!-- ===== Main Content ===== -->
-    <main class="max-w-5xl mx-auto px-4 pb-6">
+    <!-- إخفاء Main content افتراضياً حتى يتم تسجيل الدخول -->
+    <main class="max-w-5xl mx-auto px-4 pb-6 hidden">
 
         <!-- ========== DASHBOARD TAB ========== -->
         <div id="tab-dashboard" class="tab-content">
@@ -1123,9 +1219,19 @@
                                 <label class="form-label"><i class="fa-regular fa-calendar ml-1" style="color:#f43f5e;"></i> تاريخ الاستحقاق</label>
                                 <input type="date" id="med-date" required>
                             </div>
+                            <div class="form-field meds">
+                                <label class="form-label"><i class="fa-solid fa-syringe ml-1" style="color:#f43f5e;"></i> طريقة الإعطاء</label>
+                                <select id="med-administration" required>
+                                    <option value="حقن عضلي">حقن عضلي 💉</option>
+                                    <option value="حقن تحت الجلد">حقن تحت الجلد 💉</option>
+                                    <option value="عن طريق الفم">عن طريق الفم 💊</option>
+                                    <option value="رذاذ أنفي">رذاذ أنفي 🌬️</option>
+                                    <option value="أخرى">أخرى 📌</option>
+                                </select>
+                            </div>
                             <div class="form-field meds md:col-span-2">
-                                <label class="form-label"><i class="fa-solid fa-note-sticky ml-1" style="color:#f43f5e;"></i> طريقة الإعطاء وملاحظات</label>
-                                <input type="text" id="med-notes" placeholder="مثال: حقن عضلي، جرعة 5مل لكل رأس...">
+                                <label class="form-label"><i class="fa-solid fa-note-sticky ml-1" style="color:#f43f5e;"></i> ملاحظات إضافية</label>
+                                <input type="text" id="med-notes" placeholder="مثال: جرعة 5مل لكل رأس...">
                             </div>
                         </div>
                         <button type="submit" class="btn btn-rose">
@@ -1245,6 +1351,37 @@
         })();
     </script>
 
+    <!-- إعداد Firebase للمصادقة -->
+    <script>
+        // إعداد Firebase باستخدام متغيرات البيئة أو القيم الافتراضية
+        // سيتم تحديث هذه القيم لاحقاً من Firebase Console
+const firebaseConfig = {
+  apiKey: "AIzaSyAQ6rmpgBNtmD8-geod2-Y4Yopzz7tSj5k",
+  authDomain: "shope-47a87.firebaseapp.com",
+  projectId: "shope-47a87",
+  storageBucket: "shope-47a87.firebasestorage.app",
+  messagingSenderId: "665877850680",
+  appId: "1:665877850680:web:afce2eff71c89f63f2d4cd",
+  measurementId: "G-9VESDDFGRV"
+};
+
+        // تهيئة Firebase
+        firebase.initializeApp(firebaseConfig);
+    </script>
+
     <script src="app.js"></script>
+
+    <!-- تسجيل Service Worker لاستقبال الإشعارات -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/firebase-messaging-sw.js')
+                .then((registration) => {
+                    console.log('Service Worker تم تسجيله بنجاح:', registration);
+                })
+                .catch((error) => {
+                    console.log('فشل في تسجيل Service Worker:', error);
+                });
+        }
+    </script>
 </body>
 </html>

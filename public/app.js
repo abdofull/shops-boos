@@ -24,6 +24,304 @@ let globalSales = [];
 let categoryChartInstance = null;
 let monthlyChartInstance = null;
 
+// متغير لتخزين ID Token للمصادقة
+let idToken = null;
+
+// ==========================================
+// نظام الإشعارات المحلي المجدول (Local Scheduled Notifications)
+// ==========================================
+
+// دالة طلب إذن الإشعارات المحلية
+async function requestNotificationPermission() {
+    try {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+            console.log('✅ تم منح إذن الإشعارات المحلية');
+            return true;
+        } else {
+            console.log('❌ تم رفض إذن الإشعارات');
+            return false;
+        }
+    } catch (error) {
+        console.error('❌ خطأ في طلب إذن الإشعارات:', error);
+        return false;
+    }
+}
+
+// دالة فحص التطعيمات المستحقة غداً وإرسال إشعارات محلية
+async function checkVaccinationsAndNotify() {
+    try {
+        // التحقق من وجود إذن الإشعارات
+        if (Notification.permission !== 'granted') {
+            return;
+        }
+
+        // الحصول على تاريخ الغد
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(0, 0, 0, 0);
+
+        // فلترة التطعيمات المستحقة غداً
+        const dueTomorrow = globalMedications.filter(med => {
+            if (med.isCompleted) return false;
+            const medDate = new Date(med.date);
+            medDate.setHours(0, 0, 0, 0);
+            return medDate.getTime() === tomorrow.getTime();
+        });
+
+        // إرسال إشعارات للتطعيمات المستحقة غداً
+        for (const med of dueTomorrow) {
+            const notificationTitle = 'تذكير بموعد تطعيمة غداً 💉';
+            const notificationBody = `غداً لديك تطعيمة ${med.name}، وطريقة الإعطاء هي ${med.administrationMethod}.`;
+
+            const notification = new Notification(notificationTitle, {
+                body: notificationBody,
+                icon: '/favicon.ico',
+                badge: '/favicon.ico',
+                vibrate: [200, 100, 200],
+                tag: 'vaccination-reminder',
+                requireInteraction: true,
+                data: {
+                    medicationId: med.id,
+                    medicationName: med.name,
+                    administrationMethod: med.administrationMethod
+                }
+            });
+
+            console.log(`✅ تم إرسال إشعار محلي للتطعيمة ${med.name}`);
+        }
+    } catch (error) {
+        console.error('❌ خطأ في فحص التطعيمات:', error);
+    }
+}
+
+// دالة بدء الفحص اليومي المجدول
+function startDailyCheck() {
+    // فحص فوري عند تحميل الصفحة
+    checkVaccinationsAndNotify();
+
+    // الفحص كل ساعة (لضمان عدم فقدان الإشعارات)
+    setInterval(() => {
+        checkVaccinationsAndNotify();
+    }, 60 * 60 * 1000); // كل ساعة
+}
+
+// ==========================================
+// نظام المصادقة (Authentication System)
+// ==========================================
+
+// متغير لتخزين معلومات المستخدم الحالي
+let currentUser = null;
+
+// دالة التبديل بين تبويبات تسجيل الدخول وإنشاء الحساب
+function showAuthTab(tab) {
+    // إخفاء رسالة الخطأ
+    document.getElementById('auth-error').classList.add('hidden');
+
+    if (tab === 'login') {
+        // إظهار نموذج تسجيل الدخول
+        document.getElementById('login-form-container').classList.remove('hidden');
+        document.getElementById('signup-form-container').classList.add('hidden');
+
+        // تحديث تنسيق التبويبات
+        document.getElementById('tab-login').classList.add('bg-white', 'text-green-700', 'shadow-sm');
+        document.getElementById('tab-login').classList.remove('text-gray-500');
+        document.getElementById('tab-signup').classList.remove('bg-white', 'text-green-700', 'shadow-sm');
+        document.getElementById('tab-signup').classList.add('text-gray-500');
+    } else {
+        // إظهار نموذج إنشاء الحساب
+        document.getElementById('login-form-container').classList.add('hidden');
+        document.getElementById('signup-form-container').classList.remove('hidden');
+
+        // تحديث تنسيق التبويبات
+        document.getElementById('tab-signup').classList.add('bg-white', 'text-green-700', 'shadow-sm');
+        document.getElementById('tab-signup').classList.remove('text-gray-500');
+        document.getElementById('tab-login').classList.remove('bg-white', 'text-green-700', 'shadow-sm');
+        document.getElementById('tab-login').classList.add('text-gray-500');
+    }
+}
+
+// دالة عرض رسالة خطأ المصادقة
+function showAuthError(message) {
+    const errorDiv = document.getElementById('auth-error');
+    const errorMsg = document.getElementById('auth-error-msg');
+    errorMsg.innerText = message;
+    errorDiv.classList.remove('hidden');
+}
+
+// دالة إخفاء رسالة خطأ المصادقة
+function hideAuthError() {
+    document.getElementById('auth-error').classList.add('hidden');
+}
+
+// معالجة نموذج تسجيل الدخول
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideAuthError();
+
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+
+    try {
+        // تسجيل الدخول باستخدام Firebase
+        const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
+
+        // الحصول على ID Token
+        idToken = await userCredential.user.getIdToken();
+
+        // حفظ معلومات المستخدم
+        currentUser = {
+            uid: userCredential.user.uid,
+            email: userCredential.user.email
+        };
+
+        // إخفاء صفحة المصادقة وإظهار التطبيق
+        document.getElementById('auth-page').classList.add('hidden');
+        document.querySelector('header').classList.remove('hidden');
+        document.querySelector('main').classList.remove('hidden');
+
+        // تحميل بيانات المستخدم
+        await initializeData();
+
+        showToast('success', 'مرحباً بك', 'تم تسجيل الدخول بنجاح!');
+    } catch (error) {
+        // عرض رسالة خطأ مناسبة
+        let errorMessage = 'فشل تسجيل الدخول';
+        if (error.code === 'auth/user-not-found') {
+            errorMessage = 'المستخدم غير موجود';
+        } else if (error.code === 'auth/wrong-password') {
+            errorMessage = 'كلمة المرور غير صحيحة';
+        } else if (error.code === 'auth/invalid-email') {
+            errorMessage = 'البريد الإلكتروني غير صالح';
+        }
+        showAuthError(errorMessage);
+    }
+});
+
+// معالجة نموذج إنشاء الحساب
+document.getElementById('signup-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideAuthError();
+
+    const name = document.getElementById('signup-name').value;
+    const email = document.getElementById('signup-email').value;
+    const password = document.getElementById('signup-password').value;
+    const confirmPassword = document.getElementById('signup-confirm-password').value;
+
+    // التحقق من تطابق كلمة المرور
+    if (password !== confirmPassword) {
+        showAuthError('كلمات المرور غير متطابقة');
+        return;
+    }
+
+    try {
+        // إنشاء حساب جديد باستخدام Firebase
+        const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
+
+        // تحديث اسم المستخدم
+        await userCredential.user.updateProfile({ displayName: name });
+
+        // الحصول على ID Token
+        idToken = await userCredential.user.getIdToken();
+
+        // حفظ معلومات المستخدم
+        currentUser = {
+            uid: userCredential.user.uid,
+            email: userCredential.user.email,
+            displayName: name
+        };
+
+        // إخفاء صفحة المصادقة وإظهار التطبيق
+        document.getElementById('auth-page').classList.add('hidden');
+        document.querySelector('header').classList.remove('hidden');
+        document.querySelector('main').classList.remove('hidden');
+
+        // تحميل بيانات المستخدم
+        await initializeData();
+
+        showToast('success', 'تم إنشاء الحساب', 'مرحباً بك في نظام مزرعة العلاليش!');
+    } catch (error) {
+        // عرض رسالة خطأ مناسبة
+        let errorMessage = 'فشل إنشاء الحساب';
+        if (error.code === 'auth/email-already-in-use') {
+            errorMessage = 'البريد الإلكتروني مستخدم بالفعل';
+        } else if (error.code === 'auth/weak-password') {
+            errorMessage = 'كلمة المرور ضعيفة جداً';
+        } else if (error.code === 'auth/invalid-email') {
+            errorMessage = 'البريد الإلكتروني غير صالح';
+        }
+        showAuthError(errorMessage);
+    }
+});
+
+// دالة تسجيل الخروج
+async function handleLogout() {
+    const isConfirmed = await showConfirm('تسجيل الخروج', 'هل أنت متأكد من رغبتك في تسجيل الخروج؟');
+    if (!isConfirmed) return;
+
+    try {
+        // تسجيل الخروج من Firebase
+        await firebase.auth().signOut();
+
+        // مسح بيانات المستخدم
+        currentUser = null;
+        idToken = null;
+
+        // إظهار صفحة المصادقة وإخفاء التطبيق
+        document.getElementById('auth-page').classList.remove('hidden');
+        document.querySelector('header').classList.add('hidden');
+        document.querySelector('main').classList.add('hidden');
+
+        // تفريغ البيانات المحلية
+        globalExpenses = [];
+        globalBatches = [];
+        globalMedications = [];
+        globalSales = [];
+
+        showToast('success', 'تم تسجيل الخروج', 'نراك قريباً!');
+    } catch (error) {
+        showToast('error', 'خطأ', 'فشل في تسجيل الخروج');
+    }
+}
+
+// مراقبة حالة المصادقة
+firebase.auth().onAuthStateChanged(async (user) => {
+    if (user) {
+        // المستخدم مسجل الدخول
+        currentUser = {
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName
+        };
+
+        // الحصول على ID Token
+        idToken = await user.getIdToken();
+
+        // طلب إذن الإشعارات المحلية
+        await requestNotificationPermission();
+
+        // إخفاء صفحة المصادقة وإظهار التطبيق
+        document.getElementById('auth-page').classList.add('hidden');
+        document.querySelector('header').classList.remove('hidden');
+        document.querySelector('main').classList.remove('hidden');
+
+        // تحميل بيانات المستخدم
+        await initializeData();
+
+        // بدء الفحص اليومي المجدول
+        startDailyCheck();
+    } else {
+        // المستخدم غير مسجل الدخول
+        currentUser = null;
+        idToken = null;
+
+        // إظهار صفحة المصادقة وإخفاء التطبيق
+        document.getElementById('auth-page').classList.remove('hidden');
+        document.querySelector('header').classList.add('hidden');
+        document.querySelector('main').classList.add('hidden');
+    }
+});
+
 // ==========================================
 // 1. نظام الإشعارات والنوافذ المنبثقة (Custom Alerts)
 // ==========================================
@@ -230,7 +528,13 @@ function renderCharts() {
 
 async function fetchExpenses() {
     try {
-        const response = await fetch(EXPENSES_API);
+        // إرسال ID Token في الـ headers للمصادقة
+        const headers = { 'Content-Type': 'application/json' };
+        if (idToken) {
+            headers['Authorization'] = `Bearer ${idToken}`;
+        }
+
+        const response = await fetch(EXPENSES_API, { headers });
         globalExpenses = await response.json();
         renderExpensesTable();
         updateDashboard();
@@ -274,9 +578,15 @@ document.getElementById('expense-form').addEventListener('submit', async (e) => 
         notes: document.getElementById('exp-notes').value
     };
     try {
+        // إرسال ID Token في الـ headers للمصادقة
+        const headers = { 'Content-Type': 'application/json' };
+        if (idToken) {
+            headers['Authorization'] = `Bearer ${idToken}`;
+        }
+
         const res = await fetch(EXPENSES_API, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: headers,
             body: JSON.stringify(newExp)
         });
         if (res.ok) {
@@ -295,7 +605,13 @@ async function deleteExpense(id) {
     if (!isConfirmed) return;
 
     try {
-        const res = await fetch(`${EXPENSES_API}/${id}`, { method: 'DELETE' });
+        // إرسال ID Token في الـ headers للمصادقة
+        const headers = { 'Content-Type': 'application/json' };
+        if (idToken) {
+            headers['Authorization'] = `Bearer ${idToken}`;
+        }
+
+        const res = await fetch(`${EXPENSES_API}/${id}`, { method: 'DELETE', headers });
         if (res.ok) {
             showToast('success', 'تم الحذف', 'تم حذف المصروف بنجاح.');
             fetchExpenses();
@@ -311,7 +627,13 @@ async function deleteExpense(id) {
 
 async function fetchBatches() {
     try {
-        const response = await fetch(BATCHES_API);
+        // إرسال ID Token في الـ headers للمصادقة
+        const headers = { 'Content-Type': 'application/json' };
+        if (idToken) {
+            headers['Authorization'] = `Bearer ${idToken}`;
+        }
+
+        const response = await fetch(BATCHES_API, { headers });
         globalBatches = await response.json();
         renderBatchesTable();
         updateDashboard();
@@ -355,9 +677,15 @@ document.getElementById('batch-form').addEventListener('submit', async (e) => {
         date: document.getElementById('bat-date').value
     };
     try {
+        // إرسال ID Token في الـ headers للمصادقة
+        const headers = { 'Content-Type': 'application/json' };
+        if (idToken) {
+            headers['Authorization'] = `Bearer ${idToken}`;
+        }
+
         const res = await fetch(BATCHES_API, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: headers,
             body: JSON.stringify(newBatch)
         });
         if (res.ok) {
@@ -375,7 +703,13 @@ async function deleteBatch(id) {
     const isConfirmed = await showConfirm('إلغاء دفعة', 'هل تريد حذف هذه الدفعة المشتراة؟');
     if (!isConfirmed) return;
     try {
-        const res = await fetch(`${BATCHES_API}/${id}`, { method: 'DELETE' });
+        // إرسال ID Token في الـ headers للمصادقة
+        const headers = { 'Content-Type': 'application/json' };
+        if (idToken) {
+            headers['Authorization'] = `Bearer ${idToken}`;
+        }
+
+        const res = await fetch(`${BATCHES_API}/${id}`, { method: 'DELETE', headers });
         if (res.ok) {
             showToast('success', 'تم الحذف', 'تم الحذف بنجاح.');
             fetchBatches();
@@ -391,7 +725,13 @@ async function deleteBatch(id) {
 
 async function fetchSales() {
     try {
-        const response = await fetch(SALES_API);
+        // إرسال ID Token في الـ headers للمصادقة
+        const headers = { 'Content-Type': 'application/json' };
+        if (idToken) {
+            headers['Authorization'] = `Bearer ${idToken}`;
+        }
+
+        const response = await fetch(SALES_API, { headers });
         globalSales = await response.json();
         renderSalesTable();
         updateDashboard();
@@ -480,9 +820,15 @@ document.getElementById('sale-form').addEventListener('submit', async (e) => {
     };
 
     try {
+        // إرسال ID Token في الـ headers للمصادقة
+        const headers = { 'Content-Type': 'application/json' };
+        if (idToken) {
+            headers['Authorization'] = `Bearer ${idToken}`;
+        }
+
         const res = await fetch(SALES_API, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: headers,
             body: JSON.stringify(newSale)
         });
         if (res.ok) {
@@ -500,7 +846,13 @@ async function deleteSale(id) {
     const isConfirmed = await showConfirm('حذف مبيعة', 'هل تريد بالفعل حذف سجل هذه المبيعة؟ سيتم إرجاع الأغنام إلى الرصيد وتعديل الأرباح.');
     if (!isConfirmed) return;
     try {
-        const res = await fetch(`${SALES_API}/${id}`, { method: 'DELETE' });
+        // إرسال ID Token في الـ headers للمصادقة
+        const headers = { 'Content-Type': 'application/json' };
+        if (idToken) {
+            headers['Authorization'] = `Bearer ${idToken}`;
+        }
+
+        const res = await fetch(`${SALES_API}/${id}`, { method: 'DELETE', headers });
         if (res.ok) {
             showToast('success', 'تم الحذف', 'تم الحذف وتحديث الأرصدة بنجاح.');
             fetchSales();
@@ -517,7 +869,13 @@ async function deleteSale(id) {
 
 async function fetchMedications() {
     try {
-        const response = await fetch(MEDICATIONS_API);
+        // إرسال ID Token في الـ headers للمصادقة
+        const headers = { 'Content-Type': 'application/json' };
+        if (idToken) {
+            headers['Authorization'] = `Bearer ${idToken}`;
+        }
+
+        const response = await fetch(MEDICATIONS_API, { headers });
         globalMedications = await response.json();
         renderMedicationsTable();
         renderReminders();
@@ -623,13 +981,20 @@ document.getElementById('med-form').addEventListener('submit', async (e) => {
         name: document.getElementById('med-name').value,
         type: document.getElementById('med-type').value,
         date: document.getElementById('med-date').value,
+        administrationMethod: document.getElementById('med-administration').value,
         notes: document.getElementById('med-notes').value,
         isCompleted: false // الدواء غير منجز افتراضياً
     };
     try {
+        // إرسال ID Token في الـ headers للمصادقة
+        const headers = { 'Content-Type': 'application/json' };
+        if (idToken) {
+            headers['Authorization'] = `Bearer ${idToken}`;
+        }
+
         const res = await fetch(MEDICATIONS_API, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: headers,
             body: JSON.stringify(newMed)
         });
         if (res.ok) {
@@ -649,9 +1014,15 @@ async function markMedicationDone(id) {
     if (!isConfirmed) return;
 
     try {
+        // إرسال ID Token في الـ headers للمصادقة
+        const headers = { 'Content-Type': 'application/json' };
+        if (idToken) {
+            headers['Authorization'] = `Bearer ${idToken}`;
+        }
+
         const res = await fetch(`${MEDICATIONS_API}/${id}`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            headers: headers,
             body: JSON.stringify({ isCompleted: true })
         });
         if (res.ok) {
@@ -667,7 +1038,13 @@ async function deleteMedication(id) {
     const isConfirmed = await showConfirm('حذف الموعد', 'هل أنت متأكد من حذف هذا الموعد الطبي؟');
     if (!isConfirmed) return;
     try {
-        const res = await fetch(`${MEDICATIONS_API}/${id}`, { method: 'DELETE' });
+        // إرسال ID Token في الـ headers للمصادقة
+        const headers = { 'Content-Type': 'application/json' };
+        if (idToken) {
+            headers['Authorization'] = `Bearer ${idToken}`;
+        }
+
+        const res = await fetch(`${MEDICATIONS_API}/${id}`, { method: 'DELETE', headers });
         if (res.ok) {
             showToast('success', 'تم الحذف', 'تم حذف الموعد الطبي بنجاح.');
             fetchMedications();
@@ -690,7 +1067,13 @@ async function resetSystem() {
     if (!isConfirmed) return;
 
     try {
-        const res = await fetch('/api/reset', { method: 'DELETE' });
+        // إرسال ID Token في الـ headers للمصادقة
+        const headers = { 'Content-Type': 'application/json' };
+        if (idToken) {
+            headers['Authorization'] = `Bearer ${idToken}`;
+        }
+
+        const res = await fetch('/api/reset', { method: 'DELETE', headers });
         if (res.ok) {
             showToast('success', 'تم التصفير', 'تم حذف كافة بيانات المزرعة بنجاح. ستبدأ بموسم جديد نظيف.');
             // تفريغ البيانات المحلية
@@ -724,4 +1107,4 @@ async function initializeData() {
     await fetchMedications(); // جلب الأدوية
 }
 
-initializeData();
+// ملاحظة: initializeData() يتم استدعاؤه تلقائياً داخل onAuthStateChanged بعد تسجيل الدخول
